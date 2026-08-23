@@ -39,10 +39,17 @@ export default withMermaid(defineConfig({
     inventory: countInventory(pages),
     nav: [
       { text: 'Introduction', link: '/introduction' },
-      { text: 'Agents', link: '/agents/' },
-      { text: 'Skills', link: '/skills/' },
-      { text: 'Workflows', link: '/workflows/' },
-      { text: 'Orchestration', link: '/AGENTS' }
+      {
+        text: 'Docs',
+        items: [
+          { text: 'Agents', link: '/agents/' },
+          { text: 'Skills', link: '/skills/' },
+          { text: 'Workflows', link: '/workflows/' },
+          { text: 'Checklists', link: '/checklists/' },
+          { text: 'Standards', link: '/standards/' },
+          { text: 'Orchestration', link: '/AGENTS' }
+        ]
+      }
     ],
     sidebar: buildSidebar(SRC, pages),
     search: {
