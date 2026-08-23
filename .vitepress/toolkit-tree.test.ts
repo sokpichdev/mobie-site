@@ -270,4 +270,20 @@ describe('fixRootReadmeLinks', () => {
   it('leaves unrelated hrefs untouched', () => {
     expect(fixRootReadmeLinks('<a href="./introduction">x</a>')).toBe('<a href="./introduction">x</a>')
   })
+
+  it('rewrites the bare no-prefix form', () => {
+    expect(fixRootReadmeLinks('<a href="README">x</a>')).toBe('<a href="introduction">x</a>')
+  })
+
+  it('preserves a trailing anchor', () => {
+    expect(fixRootReadmeLinks('<a href="./README#section">x</a>')).toBe('<a href="./introduction#section">x</a>')
+  })
+
+  it('preserves a trailing query string', () => {
+    expect(fixRootReadmeLinks('<a href="../README?x=1">x</a>')).toBe('<a href="../introduction?x=1">x</a>')
+  })
+
+  it('preserves a trailing anchor on the bare no-prefix form', () => {
+    expect(fixRootReadmeLinks('<a href="README#top">x</a>')).toBe('<a href="introduction#top">x</a>')
+  })
 })

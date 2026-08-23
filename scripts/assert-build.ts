@@ -91,16 +91,25 @@ for (const page of mermaidSources) {
   const html = existsSync(join(DIST, route)) ? readFileSync(join(DIST, route), 'utf8') : ''
   // vitepress-plugin-mermaid renders the diagram client-side (browser JS turns the
   // placeholder into an <svg> after hydration), so static build output can NEVER contain
-  // '<svg' — only the unrendered `<div class="mermaid">` placeholder. Asserting on '<svg'
-  // would make this branch permanently, accidentally true-by-omission (it never runs),
-  // so we deliberately assert on the placeholder class instead, which is the only thing
-  // the static HTML can actually prove: that the page reached the Mermaid component
-  // rather than falling back to a plain <pre><code> block (which happens when v-pre wraps
-  // the page — see assertion 8 below).
+  // '<svg' — only the unrendered `<div class="mermaid">` placeholder (compiled) or a
+  // literal, uncompiled `<Mermaid ...>` tag (v-pre'd). Asserting on '<svg' would make this
+  // branch permanently, accidentally true-by-omission (it never runs).
+  //
+  // `class="mermaid"` alone is NOT sufficient: when a page is wrapped in v-pre (see
+  // assertion 8), Vue never compiles the <Mermaid> component into that div — it emits the
+  // component tag as literal static markup instead, and `<Mermaid class="mermaid" ...>`
+  // still contains the substring `class="mermaid"`. That is precisely the failure mode
+  // this assertion exists to catch, so checking the substring alone lets a blank, inert
+  // diagram pass. A literal, uncompiled `<Mermaid` tag surviving into the HTML is the
+  // discriminator: it appears only when the component never mounted.
+  const hasMermaidClass = html.includes('class="mermaid"')
+  const isUncompiled = html.includes('<Mermaid')
   check(
     `mermaid rendered in ${page.relPath}`,
-    html.includes('class="mermaid'),
-    'diagram stayed a code block'
+    hasMermaidClass && !isUncompiled,
+    isUncompiled
+      ? 'mermaid tag present but uncompiled — the page is v-pre wrapped and the diagram will render blank'
+      : 'diagram stayed a code block'
   )
 }
 

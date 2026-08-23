@@ -207,7 +207,17 @@ export function buildRewrites(pages: Page[]): Record<string, string> {
  * Since both README.md and introduction.md live at the toolkit root, a link's leading
  * "../" (or "./") prefix — which encodes how many directories deep the linking page is —
  * is unchanged by the swap; only the final path segment needs rewriting.
+ *
+ * Handles the no-prefix bare form ("README", same as "./README" from a root-level page),
+ * and preserves a trailing anchor ("#section") or query string ("?x=1") if present. None
+ * of these forms occur in the toolkit today, but scripts/fetch-toolkit.sh re-clones the
+ * toolkit's main branch on every build — the same standing risk that justified the
+ * v-pre/mermaid collision check (Ruling 12) — so this closes the gap now rather than
+ * waiting to rediscover it.
  */
 export function fixRootReadmeLinks(html: string): string {
-  return html.replace(/href="((?:\.\.\/)+|\.\/)README"/g, 'href="$1introduction"')
+  return html.replace(
+    /href="((?:\.\.\/)+|\.\/)?README(#[^"]*|\?[^"]*)?"/g,
+    (_m, prefix, suffix) => `href="${prefix ?? ''}introduction${suffix ?? ''}"`
+  )
 }
