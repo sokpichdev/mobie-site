@@ -100,6 +100,30 @@ describe('countInventory', () => {
   })
 })
 
+describe('countInventory with generated indexes', () => {
+  let genRoot: string
+
+  beforeAll(() => {
+    genRoot = mkdtempSync(join(tmpdir(), 'toolkit-gen-'))
+    const genPut = (rel: string, body = '# Title\n') => {
+      const full = join(genRoot, rel)
+      mkdirSync(join(full, '..'), { recursive: true })
+      writeFileSync(full, body)
+    }
+    genPut('skills/README.md')
+    genPut('skills/ui/ios/uikit_view_layer.md')
+    // Simulates a gen-dir-index.ts output: a generated scaffold page, not toolkit content.
+    genPut('skills/ui/index.md')
+  })
+
+  afterAll(() => rmSync(genRoot, { recursive: true, force: true }))
+
+  it('does not count generated index.md pages toward the section total', () => {
+    const counts = countInventory(collectPages(genRoot))
+    expect(counts.skills).toBe(1)
+  })
+})
+
 describe('buildRewrites', () => {
   it('maps directory README.md to index.md at every depth', () => {
     const rw = buildRewrites(collectPages(root))

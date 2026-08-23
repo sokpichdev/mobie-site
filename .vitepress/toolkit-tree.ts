@@ -61,7 +61,9 @@ export function countInventory(pages: Page[]): Record<string, number> {
       continue
     }
 
-    if (page.isIndex) continue
+    // Generated index.md pages (skills/**, templates/ios/) are directory scaffolding,
+    // not toolkit content, so they must not inflate file-based section counts.
+    if (page.isIndex || page.base === 'index') continue
     counts[section] = (counts[section] ?? 0) + 1
   }
 

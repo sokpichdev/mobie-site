@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Copy site-owned files into the fetched toolkit tree. This is the ONLY write into
-# .content/toolkit — it adds the landing page, which is site content, not toolkit content.
+# Copy site-owned files into the fetched toolkit tree: the landing page and public assets,
+# which are site content, not toolkit content. gen-indexes.ts runs after this and also
+# writes into .content/toolkit (generated directory index pages).
 set -euo pipefail
 
 DEST=".content/toolkit"

@@ -17,8 +17,18 @@ function firstHeading(absPath: string): string | null {
   return m ? m[1] : null
 }
 
+const ACRONYMS: Record<string, string> = {
+  ios: 'iOS',
+  ui: 'UI',
+  api: 'API',
+  android: 'Android'
+}
+
 function titleCase(slug: string): string {
-  return slug.split(/[-_]/).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  return slug
+    .split(/[-_]/)
+    .map((w) => ACRONYMS[w.toLowerCase()] ?? w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
 }
 
 function hasMarkdownDescendant(dir: string): boolean {
