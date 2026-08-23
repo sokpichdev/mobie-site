@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import { vPreExceptLanding } from './vpre'
-import { collectPages, buildRewrites, buildSidebar } from './toolkit-tree'
+import { collectPages, buildRewrites, buildSidebar, countInventory } from './toolkit-tree'
 
 const SRC = './.content/toolkit'
 const pages = collectPages(SRC)
@@ -36,6 +36,7 @@ export default withMermaid(defineConfig({
     /^http:\/\/localhost/      // local dashboard URL in the toolkit README
   ],
   themeConfig: {
+    inventory: countInventory(pages),
     nav: [
       { text: 'Introduction', link: '/introduction' },
       { text: 'Agents', link: '/agents/' },
