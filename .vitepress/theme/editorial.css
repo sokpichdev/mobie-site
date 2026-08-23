@@ -1,0 +1,59 @@
+/* Editorial treatment: serif display faces, hairline rules, restrained headings. */
+
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3 {
+  font-family: var(--mobie-font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.vp-doc h1 {
+  font-size: 2.4rem;
+  line-height: 1.15;
+}
+
+.vp-doc h2 {
+  border-top: 1.5px solid var(--mobie-text);
+  border-bottom: none;
+  padding-top: 1.5rem;
+  margin-top: 3rem;
+}
+
+.vp-doc h2::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--mobie-accent);
+  margin-bottom: 0.9rem;
+}
+
+.vp-doc blockquote {
+  border-left: 2px solid var(--mobie-accent);
+  font-family: var(--mobie-font-display);
+  font-style: italic;
+  color: var(--mobie-muted);
+}
+
+.vp-doc table {
+  font-size: 0.92em;
+}
+
+.vp-doc th {
+  font-family: var(--mobie-font-mono);
+  font-size: 0.78em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mobie-muted);
+  font-weight: 600;
+}
+
+/* Mermaid diagrams sit on the surface colour rather than transparent. */
+.vp-doc .mermaid {
+  background: var(--mobie-surface);
+  border: 1px solid var(--mobie-rule);
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+}
