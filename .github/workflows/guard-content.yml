@@ -1,0 +1,23 @@
+name: Guard content boundary
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if toolkit content was committed to the site repo
+        run: |
+          # site/index.md is the landing page and is the ONLY committed markdown.
+          offenders=$(git ls-files '*.md' | grep -v '^site/index.md$' || true)
+          if [ -n "$offenders" ]; then
+            echo "::error::This repo renders the toolkit; it must not contain content."
+            echo "Unexpected markdown files:"
+            echo "$offenders"
+            exit 1
+          fi
+          echo "Content boundary intact."
