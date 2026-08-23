@@ -14,9 +14,11 @@
     "postbuild": "tsx scripts/assert-build.ts",
     "dev": "npm run prebuild && vitepress dev",
     "preview": "vitepress preview",
+    "check:links": "bash scripts/check-links.sh",
     "test": "vitest run"
   },
   "devDependencies": {
+    "linkinator": "^6.3.0",
     "mermaid": "^11.17.0",
     "tsx": "^4.23.12",
     "typescript": "^5.9.3",

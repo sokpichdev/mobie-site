@@ -191,3 +191,23 @@ export function buildRewrites(pages: Page[]): Record<string, string> {
 
   return rewrites
 }
+
+/**
+ * `buildRewrites` changes where the root README.md's OUTPUT lands (introduction.html
+ * instead of the generic dir/index.html every other README gets, because site/index.md
+ * owns '/'), but VitePress does not rewrite the literal href of markdown links elsewhere
+ * that point AT it — those still render as a plain relative link to "README", which
+ * 404s in the built site (dist has no README.html) even though `vitepress build`'s own
+ * dead-link checker resolves it correctly via the rewrites map and reports no problem.
+ *
+ * Every other README.md keeps the standard README->index mapping, so a relative link to
+ * one of those (e.g. "../agents/README.md") already resolves correctly without help; only
+ * the root case needs this, because introduction.md is a non-standard destination.
+ *
+ * Since both README.md and introduction.md live at the toolkit root, a link's leading
+ * "../" (or "./") prefix — which encodes how many directories deep the linking page is —
+ * is unchanged by the swap; only the final path segment needs rewriting.
+ */
+export function fixRootReadmeLinks(html: string): string {
+  return html.replace(/href="((?:\.\.\/)+|\.\/)README"/g, 'href="$1introduction"')
+}

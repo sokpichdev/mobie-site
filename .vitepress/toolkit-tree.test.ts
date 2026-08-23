@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { collectPages, countInventory, buildRewrites, buildSidebar, readTitle } from './toolkit-tree'
+import { collectPages, countInventory, buildRewrites, buildSidebar, readTitle, fixRootReadmeLinks } from './toolkit-tree'
 
 let root: string
 
@@ -247,5 +247,27 @@ describe('sidebar generation', () => {
       const allLabels = skills.items!.flatMap((i) => [i.text, ...(i.items ?? []).map((c) => c.text)])
       expect(allLabels).not.toContain('index')
     })
+  })
+})
+
+describe('fixRootReadmeLinks', () => {
+  it('rewrites a same-directory link to the root README (root-level linking page)', () => {
+    expect(fixRootReadmeLinks('<a href="./README">x</a>')).toBe('<a href="./introduction">x</a>')
+  })
+
+  it('rewrites a link from one directory deep, preserving depth', () => {
+    expect(fixRootReadmeLinks('<a href="../README">x</a>')).toBe('<a href="../introduction">x</a>')
+  })
+
+  it('rewrites a link from two directories deep, preserving depth', () => {
+    expect(fixRootReadmeLinks('<a href="../../README">x</a>')).toBe('<a href="../../introduction">x</a>')
+  })
+
+  it('leaves links to other READMEs untouched', () => {
+    expect(fixRootReadmeLinks('<a href="../agents/README">x</a>')).toBe('<a href="../agents/README">x</a>')
+  })
+
+  it('leaves unrelated hrefs untouched', () => {
+    expect(fixRootReadmeLinks('<a href="./introduction">x</a>')).toBe('<a href="./introduction">x</a>')
   })
 })

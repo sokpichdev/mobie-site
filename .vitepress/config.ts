@@ -1,7 +1,8 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import { vPreExceptLanding } from './vpre'
-import { collectPages, buildRewrites, buildSidebar, countInventory } from './toolkit-tree'
+import { collectPages, buildRewrites, buildSidebar, countInventory, fixRootReadmeLinks } from './toolkit-tree'
+import type MarkdownIt from 'markdown-it'
 
 const SRC = './.content/toolkit'
 const pages = collectPages(SRC)
@@ -24,7 +25,13 @@ export default withMermaid(defineConfig({
   outDir: 'dist',
   cleanUrls: true,
   markdown: {
-    config: vPreExceptLanding
+    config: (md: MarkdownIt) => {
+      vPreExceptLanding(md)
+      // Post-process rendered HTML to correct root-README hrefs — see fixRootReadmeLinks
+      // in ./toolkit-tree.ts for why this can't be handled by `rewrites` alone.
+      const render = md.render.bind(md)
+      md.render = (src: string, env?: any) => fixRootReadmeLinks(render(src, env))
+    }
   },
   // Narrow, never blanket: each pattern covers a target that cannot render as a page.
   // Everything else must resolve, so genuine link rot still fails the build.
