@@ -22,6 +22,13 @@
   --vp-c-brand-1: var(--mobie-accent);
   --vp-c-brand-2: #9a3412;
   --vp-c-brand-3: #7c2d12;
+
+  /* Elevated surfaces (nav dropdowns, the mobile outline popover) and hairline borders.
+     Without these, VitePress's defaults float unstyled against the palette. */
+  --vp-c-bg-elv: var(--mobie-surface);
+  --vp-c-border: var(--mobie-rule);
+  --vp-c-gutter: var(--mobie-rule);
+
   --vp-font-family-base: var(--mobie-font-body);
   --vp-font-family-mono: var(--mobie-font-mono);
 }
@@ -32,7 +39,7 @@
   --mobie-text: #e6e8ef;
   --mobie-muted: #8b93a7;
   --mobie-rule: #1c2029;
-  --mobie-accent: #7c5cff;
+  --mobie-accent: #8a6dff;
   --mobie-positive: #3ddc84;
   --mobie-negative: #ff6b6b;
 
@@ -45,4 +52,10 @@
   --vp-c-brand-1: var(--mobie-accent);
   --vp-c-brand-2: #6d4ee0;
   --vp-c-brand-3: #5b3fc4;
+
+  /* Elevated surfaces (nav dropdowns, the mobile outline popover) and hairline borders.
+     Without these, VitePress's defaults float unstyled against the palette. */
+  --vp-c-bg-elv: var(--mobie-surface);
+  --vp-c-border: var(--mobie-rule);
+  --vp-c-gutter: var(--mobie-rule);
 }
