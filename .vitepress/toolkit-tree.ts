@@ -71,3 +71,19 @@ export function countInventory(pages: Page[]): Record<string, number> {
 
   return counts
 }
+
+/**
+ * VitePress resolves /dir/ to dir/index.md and does not honour README.md as an index.
+ * The toolkit uses README.md as its directory index everywhere, so remap them.
+ * The root README.md becomes /introduction because site/index.md owns /.
+ */
+export function buildRewrites(pages: Page[]): Record<string, string> {
+  const rewrites: Record<string, string> = {}
+
+  for (const page of pages) {
+    if (!page.isIndex) continue
+    rewrites[page.relPath] = page.dir === '' ? 'introduction.md' : `${page.dir}/index.md`
+  }
+
+  return rewrites
+}

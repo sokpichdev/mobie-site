@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { collectPages, countInventory } from './toolkit-tree'
+import { collectPages, countInventory, buildRewrites } from './toolkit-tree'
 
 let root: string
 
@@ -97,5 +97,32 @@ describe('countInventory', () => {
   it('has no .claude section (Ruling 6: dot-prefixed dirs are never a section)', () => {
     const counts = countInventory(collectPages(root))
     expect(counts).not.toHaveProperty('.claude')
+  })
+})
+
+describe('buildRewrites', () => {
+  it('maps directory README.md to index.md at every depth', () => {
+    const rw = buildRewrites(collectPages(root))
+    expect(rw['agents/README.md']).toBe('agents/index.md')
+    expect(rw['templates/ios/swiftui_screen/README.md'])
+      .toBe('templates/ios/swiftui_screen/index.md')
+    expect(rw['examples/chat_app/README.md']).toBe('examples/chat_app/index.md')
+  })
+
+  it('maps the root README.md to introduction.md, freeing / for the landing page', () => {
+    const rw = buildRewrites(collectPages(root))
+    expect(rw['README.md']).toBe('introduction.md')
+  })
+
+  it('does not rewrite non-index pages', () => {
+    const rw = buildRewrites(collectPages(root))
+    expect(rw).not.toHaveProperty('agents/security_expert.md')
+    expect(rw).not.toHaveProperty('AGENTS.md')
+  })
+
+  it('produces one entry per README plus none extra', () => {
+    const pages = collectPages(root)
+    const readmes = pages.filter((p) => p.isIndex).length
+    expect(Object.keys(buildRewrites(pages))).toHaveLength(readmes)
   })
 })

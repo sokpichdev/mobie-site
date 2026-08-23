@@ -8,7 +8,8 @@
   "scripts": {
     "fetch": "bash scripts/fetch-toolkit.sh",
     "assemble": "bash scripts/assemble.sh",
-    "prebuild": "npm run fetch && npm run assemble",
+    "gen-indexes": "tsx scripts/gen-indexes.ts",
+    "prebuild": "npm run fetch && npm run assemble && npm run gen-indexes",
     "build": "vitepress build",
     "postbuild": "tsx scripts/assert-build.ts",
     "dev": "npm run prebuild && vitepress dev",
