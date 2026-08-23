@@ -1,0 +1,25 @@
+{
+  "name": "mobie-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Documentation site and landing page for Mobile Engineering Agents.",
+  "license": "MIT",
+  "scripts": {
+    "fetch": "bash scripts/fetch-toolkit.sh",
+    "assemble": "bash scripts/assemble.sh",
+    "prebuild": "npm run fetch && npm run assemble",
+    "build": "vitepress build",
+    "postbuild": "tsx scripts/assert-build.ts",
+    "dev": "npm run prebuild && vitepress dev",
+    "preview": "vitepress preview",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "vitepress": "^1.6.4",
+    "vitest": "^2.1.9",
+    "vue": "^3.5.41"
+  }
+}
