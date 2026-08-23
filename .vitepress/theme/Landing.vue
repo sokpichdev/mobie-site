@@ -285,6 +285,17 @@ async function copy(text: string, event: MouseEvent) {
   margin: 0 0 2rem;
 }
 
+/* Grid and flex children default to min-width:auto and refuse to shrink below their
+   content's intrinsic width — so a long line inside a <pre> widens its track instead of
+   scrolling within it. min-width:0 lets the track shrink and hands overflow to the <pre>. */
+.contrast__col,
+.step,
+.step__code,
+.tier__agents,
+.inventory__grid a {
+  min-width: 0;
+}
+
 /* Hero contrast */
 .contrast {
   display: grid;
