@@ -1,19 +1,29 @@
 import type MarkdownIt from 'markdown-it'
 
 /**
- * Toolkit markdown is documentation, never live Vue — but VitePress compiles every page
- * as a Vue SFC, so literal {{...}} in prose (prompts/*.md, some templates) crashes the
- * template compiler. Wrap each rendered page body in v-pre to disable interpolation.
+ * VitePress compiles every page as a Vue SFC, so literal {{...}} in prose — which the
+ * toolkit's prompts/*.md use as fill-in placeholders — crashes the template compiler.
  *
- * index.md is exempt: it hosts <Landing />, and v-pre would render the component as
- * literal text instead of mounting it.
+ * Wrap ONLY the pages that contain such placeholders. A blanket wrap would also disable
+ * Vue on pages that need it: vitepress-plugin-mermaid emits a <Mermaid> component, and
+ * v-pre would stop it mounting, silently rendering no diagram at all.
+ *
+ * index.md is exempt regardless — it hosts <Landing />.
+ *
+ * Fenced code blocks are already v-pre'd by VitePress, so they are stripped before testing.
  */
 export function vPreExceptLanding(md: MarkdownIt): void {
-  const render = md.renderer.render.bind(md.renderer)
+  const render = md.render.bind(md)
 
-  md.renderer.render = (tokens, options, env) => {
-    const html = render(tokens, options, env)
+  md.render = (src: string, env?: any): string => {
+    const html = render(src, env)
     if (env?.relativePath === 'index.md') return html
+    if (!needsVPre(src)) return html
     return `<div v-pre>\n${html}\n</div>`
   }
+}
+
+/** True when the source has {{ outside a fenced code block. Exported for testing. */
+export function needsVPre(src: string): boolean {
+  return /\{\{/.test(src.replace(/```[\s\S]*?```/g, ''))
 }

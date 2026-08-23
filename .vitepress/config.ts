@@ -1,11 +1,12 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 import { vPreExceptLanding } from './vpre'
 import { collectPages, buildRewrites, buildSidebar } from './toolkit-tree'
 
 const SRC = './.content/toolkit'
 const pages = collectPages(SRC)
 
-export default defineConfig({
+export default withMermaid(defineConfig({
   title: 'Mobile Engineering Agents',
   description: 'Turn your AI coding agent into a Senior mobile engineer.',
   srcDir: SRC,
@@ -43,6 +44,12 @@ export default defineConfig({
       { text: 'Orchestration', link: '/AGENTS' }
     ],
     sidebar: buildSidebar(SRC, pages),
+    search: {
+      provider: 'local',
+      options: {
+        detailedView: true
+      }
+    },
     socialLinks: [
       { icon: 'github', link: 'https://github.com/sokpichdev/mobile-engineering-agents' }
     ],
@@ -51,4 +58,4 @@ export default defineConfig({
       text: 'Edit this page on GitHub'
     }
   }
-})
+}))
