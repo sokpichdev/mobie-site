@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { vPreExceptLanding } from './vpre'
-import { collectPages, buildRewrites } from './toolkit-tree'
+import { collectPages, buildRewrites, buildSidebar } from './toolkit-tree'
 
 const SRC = './.content/toolkit'
 const pages = collectPages(SRC)
@@ -34,4 +34,21 @@ export default defineConfig({
     /\/\.claude\//,            // dot-directory, excluded by rule and by VitePress
     /^http:\/\/localhost/      // local dashboard URL in the toolkit README
   ],
+  themeConfig: {
+    nav: [
+      { text: 'Introduction', link: '/introduction' },
+      { text: 'Agents', link: '/agents/' },
+      { text: 'Skills', link: '/skills/' },
+      { text: 'Workflows', link: '/workflows/' },
+      { text: 'Orchestration', link: '/AGENTS' }
+    ],
+    sidebar: buildSidebar(SRC, pages),
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/sokpichdev/mobile-engineering-agents' }
+    ],
+    editLink: {
+      pattern: 'https://github.com/sokpichdev/mobile-engineering-agents/edit/main/:path',
+      text: 'Edit this page on GitHub'
+    }
+  }
 })

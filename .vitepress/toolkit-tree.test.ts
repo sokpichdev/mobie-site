@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { collectPages, countInventory, buildRewrites } from './toolkit-tree'
+import { collectPages, countInventory, buildRewrites, buildSidebar, readTitle } from './toolkit-tree'
 
 let root: string
 
@@ -148,5 +148,104 @@ describe('buildRewrites', () => {
     const pages = collectPages(root)
     const readmes = pages.filter((p) => p.isIndex).length
     expect(Object.keys(buildRewrites(pages))).toHaveLength(readmes)
+  })
+})
+
+// Sidebar generation uses its own fixture root (Ruling 3): the shared `root` above is
+// asserted against exact counts by the describes preceding it (e.g. counts.agents === 2),
+// so adding files to it here would make those tests order-dependent. All fixture files are
+// created once in beforeAll, matching the 'countInventory with generated indexes' pattern.
+describe('sidebar generation', () => {
+  let sbRoot: string
+
+  function sbPut(rel: string, body = '# Title\n') {
+    const full = join(sbRoot, rel)
+    mkdirSync(join(full, '..'), { recursive: true })
+    writeFileSync(full, body)
+  }
+
+  beforeAll(() => {
+    sbRoot = mkdtempSync(join(tmpdir(), 'toolkit-sidebar-'))
+    sbPut('AGENTS.md', '# Orchestration\n')
+    sbPut('agents/README.md', '# Agents\n')
+    sbPut('agents/security_expert.md', '# Security Expert\n')
+    sbPut('agents/no_heading.md', 'no heading here\n')
+    sbPut('skills/README.md', '# Skills\n')
+    sbPut('skills/ui/index.md', '# UI Skills\n')
+    sbPut('skills/ui/page_one.md', '# Page One\n')
+    sbPut('skills/ui/page_two.md', '# Page Two\n')
+    sbPut('templates/README.md', '# Templates\n')
+    sbPut('titled.md', '---\nplatform: ios\n---\n\n# Skill: UIKit View Layer\n\nBody.\n')
+    sbPut('untitled.md', 'Just prose, no heading.\n')
+  })
+
+  afterAll(() => rmSync(sbRoot, { recursive: true, force: true }))
+
+  describe('readTitle', () => {
+    it('returns the first H1, ignoring front-matter', () => {
+      expect(readTitle(join(sbRoot, 'titled.md'))).toBe('Skill: UIKit View Layer')
+    })
+
+    it('returns null when there is no H1', () => {
+      expect(readTitle(join(sbRoot, 'untitled.md'))).toBeNull()
+    })
+  })
+
+  describe('buildSidebar', () => {
+    it('emits one group per section, in SECTION_ORDER', () => {
+      const groups = buildSidebar(sbRoot, collectPages(sbRoot))
+      const texts = groups.map((g) => g.text)
+      expect(texts.indexOf('Agents')).toBeLessThan(texts.indexOf('Skills'))
+      expect(texts).toContain('Templates')
+    })
+
+    it('links the section index to the directory route', () => {
+      const groups = buildSidebar(sbRoot, collectPages(sbRoot))
+      const agents = groups.find((g) => g.text === 'Agents')!
+      expect(agents.items![0]).toEqual({ text: 'Overview', link: '/agents/' })
+    })
+
+    it('uses each page H1 as its label and omits the .md extension from links', () => {
+      const groups = buildSidebar(sbRoot, collectPages(sbRoot))
+      const agents = groups.find((g) => g.text === 'Agents')!
+      expect(agents.items).toContainEqual({
+        text: 'Security Expert',
+        link: '/agents/security_expert'
+      })
+    })
+
+    it('falls back to the filename when a page has no H1', () => {
+      const groups = buildSidebar(sbRoot, collectPages(sbRoot))
+      const agents = groups.find((g) => g.text === 'Agents')!
+      expect(agents.items).toContainEqual({
+        text: 'no_heading',
+        link: '/agents/no_heading'
+      })
+    })
+
+    it('excludes root-level pages from section groups', () => {
+      const groups = buildSidebar(sbRoot, collectPages(sbRoot))
+      const links = groups.flatMap((g) => g.items ?? []).map((i) => i.link)
+      expect(links).not.toContain('/AGENTS')
+    })
+
+    it('nests a subdirectory as a collapsed subgroup keyed by its own index, with no item literally named "index"', () => {
+      const groups = buildSidebar(sbRoot, collectPages(sbRoot))
+      const skills = groups.find((g) => g.text === 'Skills')!
+      const uiGroup = skills.items!.find((i) => i.link === '/skills/ui/')!
+
+      expect(uiGroup).toEqual({
+        text: 'UI Skills',
+        link: '/skills/ui/',
+        collapsed: true,
+        items: [
+          { text: 'Page One', link: '/skills/ui/page_one' },
+          { text: 'Page Two', link: '/skills/ui/page_two' }
+        ]
+      })
+
+      const allLabels = skills.items!.flatMap((i) => [i.text, ...(i.items ?? []).map((c) => c.text)])
+      expect(allLabels).not.toContain('index')
+    })
   })
 })

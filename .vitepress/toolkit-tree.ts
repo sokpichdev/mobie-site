@@ -1,4 +1,4 @@
-import { readdirSync, statSync } from 'node:fs'
+import { readdirSync, statSync, readFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 
 /** Directories excluded by name. Dot-prefixed directories are excluded by rule, not by name. */
@@ -72,6 +72,108 @@ export function countInventory(pages: Page[]): Record<string, number> {
   }
 
   return counts
+}
+
+/** Display order and labels for top-level sections. Anything else is appended alphabetically. */
+export const SECTION_ORDER: Array<[string, string]> = [
+  ['agents', 'Agents'],
+  ['skills', 'Skills'],
+  ['workflows', 'Workflows'],
+  ['checklists', 'Checklists'],
+  ['standards', 'Standards'],
+  ['architecture', 'Architecture'],
+  ['prompts', 'Prompts'],
+  ['templates', 'Templates'],
+  ['examples', 'Examples']
+]
+
+export type SidebarItem = { text: string; link?: string; items?: SidebarItem[]; collapsed?: boolean }
+
+/** First H1 of a markdown file, with any YAML front-matter block skipped. */
+export function readTitle(absPath: string): string | null {
+  const raw = readFileSync(absPath, 'utf8')
+  const body = raw.startsWith('---') ? raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '') : raw
+  const match = body.match(/^#\s+(.+?)\s*$/m)
+  return match ? match[1] : null
+}
+
+/**
+ * Items for one directory: its direct (non-index) pages, followed by one nested,
+ * collapsed group per immediate subdirectory that holds markdown. Recurses so multi-level
+ * trees (e.g. skills/<topic>/<platform>/*.md) nest correctly. A directory's own
+ * README.md / generated index.md never becomes an item — it supplies the parent group's
+ * link and label instead (Ruling 10).
+ */
+function buildDirItems(root: string, prefix: string, pages: Page[]): SidebarItem[] {
+  const directPages: Page[] = []
+  const childOrder: string[] = []
+  const seenChildren = new Set<string>()
+
+  for (const page of pages) {
+    if (page.dir === prefix) {
+      if (page.isIndex || page.base === 'index') continue
+      directPages.push(page)
+      continue
+    }
+    if (page.dir.startsWith(`${prefix}/`)) {
+      const childName = page.dir.slice(prefix.length + 1).split('/')[0]
+      if (!seenChildren.has(childName)) {
+        seenChildren.add(childName)
+        childOrder.push(childName)
+      }
+    }
+  }
+
+  const items: SidebarItem[] = directPages.map((page) => ({
+    text: readTitle(join(root, page.relPath)) ?? page.base,
+    link: `/${page.dir}/${page.base}`
+  }))
+
+  for (const childName of childOrder) {
+    const childDir = `${prefix}/${childName}`
+    const indexPage = pages.find((p) => p.dir === childDir && (p.isIndex || p.base === 'index'))
+    const label =
+      (indexPage && readTitle(join(root, indexPage.relPath))) ??
+      childName[0].toUpperCase() + childName.slice(1)
+    const childItems = buildDirItems(root, childDir, pages)
+
+    items.push(
+      childItems.length
+        ? { text: label, link: `/${childDir}/`, collapsed: true, items: childItems }
+        : { text: label, link: `/${childDir}/` }
+    )
+  }
+
+  return items
+}
+
+/**
+ * One sidebar group per top-level section, in SECTION_ORDER (unlisted sections are
+ * appended alphabetically). Each group nests subdirectories as collapsed subgroups rather
+ * than flattening them, so a directory index never shows up as a sidebar item literally
+ * called "index" (Ruling 10).
+ */
+export function buildSidebar(root: string, pages: Page[]): SidebarItem[] {
+  const known = SECTION_ORDER.map(([slug]) => slug)
+  const present = [...new Set(pages.map((p) => p.dir.split('/')[0]).filter(Boolean))]
+  const extras = present.filter((s) => !known.includes(s)).sort()
+  const ordered: Array<[string, string]> = [
+    ...SECTION_ORDER.filter(([slug]) => present.includes(slug)),
+    ...extras.map((s) => [s, s[0].toUpperCase() + s.slice(1)] as [string, string])
+  ]
+
+  return ordered.map(([slug, label]) => {
+    const sectionPages = pages.filter((p) => p.dir === slug || p.dir.startsWith(`${slug}/`))
+    const items: SidebarItem[] = []
+
+    if (sectionPages.some((p) => p.dir === slug && p.isIndex)) {
+      items.push({ text: 'Overview', link: `/${slug}/` })
+    }
+
+    items.push(...buildDirItems(root, slug, sectionPages))
+
+    return { text: label, items }
+  })
 }
 
 /**
