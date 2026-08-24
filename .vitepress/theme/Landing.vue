@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useData } from 'vitepress'
+import CopyBlock from './CopyBlock.vue'
+import { SECTIONS } from './sections'
 
 const { theme } = useData()
 
@@ -8,19 +10,10 @@ const REPO = 'https://github.com/sokpichdev/mobile-engineering-agents'
 
 const inventory = computed<Record<string, number>>(() => theme.value.inventory ?? {})
 
-const INVENTORY_ROWS: Array<{ slug: string; label: string; blurb: string }> = [
-  { slug: 'agents', label: 'Agents', blurb: 'Loadable expert roles' },
-  { slug: 'skills', label: 'Skills', blurb: 'Deep, single-topic know-how' },
-  { slug: 'workflows', label: 'Workflows', blurb: 'Step-by-step procedures' },
-  { slug: 'checklists', label: 'Checklists', blurb: 'Objective review gates' },
-  { slug: 'standards', label: 'Standards', blurb: 'Non-negotiable rules' },
-  { slug: 'architecture', label: 'Architecture', blurb: 'Reference designs' },
-  { slug: 'prompts', label: 'Prompts', blurb: 'Copy-paste prompts' },
-  { slug: 'templates', label: 'Templates', blurb: 'Boilerplate scaffolding' },
-  { slug: 'examples', label: 'Examples', blurb: 'Reference apps' }
-]
+const rows = computed(() => SECTIONS.filter((r) => inventory.value[r.slug] > 0))
 
-const rows = computed(() => INVENTORY_ROWS.filter((r) => inventory.value[r.slug] > 0))
+// The whole install, on one line, for readers who are already convinced.
+const CLONE_COMMAND = `git clone ${REPO}.git .mobile-agents`
 
 const TIERS = [
   {
@@ -68,7 +61,7 @@ const TIERS = [
   }
 ]
 
-const INSTALL_STEPS = [
+const INSTALL_STEPS: Array<{ n: string; title: string; code: string; copyText?: string }> = [
   {
     n: '01',
     title: 'Clone the toolkit into your project',
@@ -82,23 +75,14 @@ const INSTALL_STEPS = [
   {
     n: '03',
     title: 'Describe what you want',
-    code: '> Build a Profile screen that loads /me and stores\n  the auth token securely.'
+    // The displayed text carries prompt decoration ('> ' and the wrap indent) that is part
+    // of the illustration, not the prompt. copyText is what actually reaches the clipboard.
+    code: '> Build a Profile screen that loads /me and stores\n  the auth token securely.',
+    copyText: 'Build a Profile screen that loads /me and stores the auth token securely.'
   }
 ]
 
 const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aider']
-
-async function copy(text: string, event: MouseEvent) {
-  const button = event.currentTarget as HTMLButtonElement
-  try {
-    await navigator.clipboard.writeText(text)
-    button.dataset.copied = 'true'
-    setTimeout(() => delete button.dataset.copied, 1400)
-  } catch {
-    button.dataset.copied = 'failed'
-    setTimeout(() => delete button.dataset.copied, 1400)
-  }
-}
 </script>
 
 <template>
@@ -145,11 +129,16 @@ async function copy(text: string, event: MouseEvent) {
         <a class="btn btn--primary" href="#install">Get started</a>
         <a class="btn" href="/introduction">Read the docs</a>
       </div>
+
+      <div class="quickstart">
+        <p class="quickstart__label">Already convinced?</p>
+        <CopyBlock compact :code="CLONE_COMMAND" label="Copy the install command" />
+      </div>
     </section>
 
     <!-- ── Tier map ─────────────────────────────────────── -->
     <section class="tiers">
-      <p class="eyebrow">02 — The team</p>
+      <p class="eyebrow eyebrow--anchored">02 — The team</p>
       <h2>You don't get an assistant. You get a team.</h2>
       <p class="lede">
         Specialist roles organised into four tiers that hand off to each other. Higher tiers
@@ -176,7 +165,7 @@ async function copy(text: string, event: MouseEvent) {
 
     <!-- ── Install ──────────────────────────────────────── -->
     <section id="install" class="install">
-      <p class="eyebrow">03 — Install</p>
+      <p class="eyebrow eyebrow--anchored">03 — Install</p>
       <h2>Running in three steps</h2>
       <p class="lede">The everyday workflow needs zero file paths.</p>
 
@@ -186,10 +175,11 @@ async function copy(text: string, event: MouseEvent) {
             <span class="step__n">{{ step.n }}</span>
             <h3>{{ step.title }}</h3>
           </div>
-          <div class="step__code">
-            <pre><code>{{ step.code }}</code></pre>
-            <button class="copy" type="button" @click="copy(step.code, $event)">Copy</button>
-          </div>
+          <CopyBlock
+            :code="step.code"
+            :copy-text="step.copyText"
+            :label="`Copy step ${step.n} commands`"
+          />
         </li>
       </ol>
 
@@ -201,7 +191,7 @@ async function copy(text: string, event: MouseEvent) {
 
     <!-- ── Inventory ────────────────────────────────────── -->
     <section class="inventory">
-      <p class="eyebrow">04 — What's inside</p>
+      <p class="eyebrow eyebrow--anchored">04 — What's inside</p>
       <h2>Everything your agent can load</h2>
       <ul class="inventory__grid">
         <li v-for="row in rows" :key="row.slug">
@@ -216,7 +206,7 @@ async function copy(text: string, event: MouseEvent) {
 
     <!-- ── Tools ────────────────────────────────────────── -->
     <section class="tools">
-      <p class="eyebrow">05 — Compatibility</p>
+      <p class="eyebrow eyebrow--anchored">05 — Compatibility</p>
       <h2>Works with the agent you already use</h2>
       <ul class="tools__list">
         <li v-for="tool in TOOLS" :key="tool">{{ tool }}</li>
@@ -230,14 +220,17 @@ async function copy(text: string, event: MouseEvent) {
 
 <style scoped>
 .landing {
-  max-width: 62rem;
+  max-width: 66rem;
   margin: 0 auto;
-  padding: 3rem 1.5rem 6rem;
+  padding: 3rem 1.5rem 3rem;
   color: var(--mobie-text);
 }
 
 .landing section {
-  margin-bottom: 5.5rem;
+  margin-bottom: 4.5rem;
+  /* The VitePress navbar is sticky, so an in-page jump lands the section heading
+     underneath it without this offset. */
+  scroll-margin-top: calc(var(--vp-nav-height) + 1rem);
 }
 
 .eyebrow {
@@ -245,14 +238,32 @@ async function copy(text: string, event: MouseEvent) {
   font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
+  margin-bottom: 0.9rem;
+}
+
+/* Anchors each section to a hairline with a short accent tick — the same treatment
+   editorial.css gives .vp-doc h2, so the landing page and the docs read as one system.
+   The hero opens the page and needs no rule above it. */
+.eyebrow--anchored {
+  border-top: 1.5px solid var(--mobie-text);
+  padding-top: 1.4rem;
+  margin-top: 0;
+}
+
+.eyebrow--anchored::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--mobie-accent);
   margin-bottom: 0.9rem;
 }
 
 .landing h1 {
   font-family: var(--mobie-font-display);
   font-weight: 400;
-  font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+  font-size: clamp(2.4rem, 5.5vw, 4rem);
   line-height: 1.1;
   letter-spacing: -0.015em;
   margin: 0 0 1rem;
@@ -290,7 +301,6 @@ async function copy(text: string, event: MouseEvent) {
    scrolling within it. min-width:0 lets the track shrink and hands overflow to the <pre>. */
 .contrast__col,
 .step,
-.step__code,
 .tier__agents,
 .inventory__grid a {
   min-width: 0;
@@ -304,9 +314,13 @@ async function copy(text: string, event: MouseEvent) {
   margin-bottom: 2rem;
 }
 
+/* A flex column with the <pre> flexed lets both code blocks stretch to the taller of the
+   two, so the captions underneath land on one baseline instead of stepping. */
 .contrast__col {
   border-top: 2px solid var(--mobie-rule);
   padding-top: 0.9rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .contrast__col--bad {
@@ -334,25 +348,34 @@ async function copy(text: string, event: MouseEvent) {
 }
 
 .contrast pre {
+  flex: 1;
   background: var(--mobie-surface);
   border: 1px solid var(--mobie-rule);
   border-radius: 5px;
+  box-shadow: var(--mobie-shadow);
   padding: 0.9rem;
   overflow-x: auto;
   margin: 0 0 0.7rem;
 }
 
+/* This code is the point of the section, so it takes the primary text colour rather
+   than the muted supporting one. */
 .contrast code {
   font-family: var(--mobie-font-mono);
   font-size: 0.78rem;
   line-height: 1.6;
-  color: var(--mobie-muted);
+  color: var(--mobie-text);
 }
 
 .contrast__note {
   font-size: 0.85rem;
   color: var(--mobie-muted);
   margin: 0;
+}
+
+/* Hero code is denser than the install steps; hold the columns apart a little more. */
+.contrast {
+  gap: 1.75rem;
 }
 
 /* CTA */
@@ -383,6 +406,31 @@ async function copy(text: string, event: MouseEvent) {
   color: var(--mobie-ground);
 }
 
+/* Quickstart: the whole install, one line, directly under the CTA row. */
+.quickstart {
+  margin-top: 1.6rem;
+  max-width: 40rem;
+}
+
+.quickstart__label {
+  font-family: var(--mobie-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mobie-muted);
+  margin: 0 0 0.5rem;
+}
+
+/* Hover is the only affordance these carry otherwise; keyboard users need the ring.
+   Outlines follow border-radius, so the pill and card shapes stay intact.
+   (.copy carries its own ring inside CopyBlock, where its styles live.) */
+.btn:focus-visible,
+.tier__agents a:focus-visible,
+.inventory__grid a:focus-visible {
+  outline: 2px solid var(--mobie-accent);
+  outline-offset: 2px;
+}
+
 /* Tiers */
 .tier-list {
   list-style: none;
@@ -392,10 +440,14 @@ async function copy(text: string, event: MouseEvent) {
   gap: 1px;
   background: var(--mobie-rule);
   border: 1px solid var(--mobie-rule);
+  border-radius: 6px;
+  box-shadow: var(--mobie-shadow);
+  /* The rows paint to the corners, so they need clipping to sit inside the radius. */
+  overflow: hidden;
 }
 
 .tier {
-  background: var(--mobie-ground);
+  background: var(--mobie-surface);
   padding: 1.4rem;
   display: grid;
   grid-template-columns: minmax(0, 18rem) 1fr;
@@ -418,7 +470,7 @@ async function copy(text: string, event: MouseEvent) {
 .tier__n {
   font-family: var(--mobie-font-mono);
   font-size: 0.78rem;
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
   padding-top: 0.15rem;
 }
 
@@ -435,15 +487,17 @@ async function copy(text: string, event: MouseEvent) {
   display: inline-block;
   font-size: 0.82rem;
   padding: 0.28rem 0.7rem;
+  background: var(--mobie-ground);
   border: 1px solid var(--mobie-rule);
   border-radius: 99px;
   color: var(--mobie-text);
   text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .tier__agents a:hover {
   border-color: var(--mobie-accent);
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
 }
 
 /* Install */
@@ -465,59 +519,7 @@ async function copy(text: string, event: MouseEvent) {
 .step__n {
   font-family: var(--mobie-font-mono);
   font-size: 0.78rem;
-  color: var(--mobie-accent);
-}
-
-.step__code {
-  position: relative;
-}
-
-.step__code pre {
-  background: var(--mobie-surface);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 5px;
-  padding: 0.9rem 4.5rem 0.9rem 0.9rem;
-  overflow-x: auto;
-  margin: 0;
-}
-
-.step__code code {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.8rem;
-  line-height: 1.7;
-  color: var(--mobie-muted);
-  white-space: pre;
-}
-
-.copy {
-  position: absolute;
-  top: 0.55rem;
-  right: 0.55rem;
-  font-family: var(--mobie-font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: var(--mobie-ground);
-  color: var(--mobie-muted);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 3px;
-  padding: 0.25rem 0.5rem;
-  cursor: pointer;
-}
-
-.copy:hover {
-  color: var(--mobie-accent);
-  border-color: var(--mobie-accent);
-}
-
-.copy[data-copied='true']::after {
-  content: ' ✓';
-  color: var(--mobie-positive);
-}
-
-.copy[data-copied='failed']::after {
-  content: ' ✗';
-  color: var(--mobie-negative);
+  color: var(--mobie-accent-text);
 }
 
 .confirm {
@@ -528,7 +530,7 @@ async function copy(text: string, event: MouseEvent) {
 .confirm code {
   font-family: var(--mobie-font-mono);
   font-size: 0.82rem;
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
   border: 1px solid var(--mobie-accent);
   border-radius: 99px;
   padding: 0.12rem 0.6rem;
@@ -536,28 +538,38 @@ async function copy(text: string, event: MouseEvent) {
 }
 
 /* Inventory */
+/* The separators used to be a --mobie-rule background showing through 1px gaps, which
+   painted every UNFILLED grid slot as a solid beige block — nine sections in a five-column
+   grid left one, and it read as a rendering fault. Drawing the rules on the cells instead
+   means an empty slot is simply paper. The section count comes from the toolkit at build
+   time, so this has to hold for any number of cells, not just today's nine. */
 .inventory__grid {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 1px;
-  background: var(--mobie-rule);
+  background: var(--mobie-surface);
   border: 1px solid var(--mobie-rule);
+  border-radius: 6px;
+  box-shadow: var(--mobie-shadow);
+  /* Clips the trailing cell rules that would otherwise cross the container border. */
+  overflow: hidden;
 }
 
 .inventory__grid a {
   display: block;
-  background: var(--mobie-ground);
   padding: 1.1rem;
   height: 100%;
   text-decoration: none;
   color: var(--mobie-text);
+  /* Right and bottom hairlines, drawn without taking layout space. */
+  box-shadow: 1px 0 0 var(--mobie-rule), 0 1px 0 var(--mobie-rule);
+  transition: background 0.15s ease;
 }
 
 .inventory__grid a:hover {
-  background: var(--mobie-surface);
+  background: var(--vp-c-bg-alt);
 }
 
 .inventory__count {
@@ -596,15 +608,21 @@ async function copy(text: string, event: MouseEvent) {
 .tools__list li {
   font-size: 0.85rem;
   padding: 0.35rem 0.85rem;
+  background: var(--mobie-surface);
   border: 1px solid var(--mobie-rule);
   border-radius: 3px;
-  color: var(--mobie-muted);
+  color: var(--mobie-text);
+  box-shadow: var(--mobie-shadow);
 }
 
 @media (max-width: 720px) {
   .contrast,
   .tier {
     grid-template-columns: 1fr;
+  }
+
+  .landing section {
+    margin-bottom: 3rem;
   }
 }
 </style>
