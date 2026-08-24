@@ -283,7 +283,7 @@ async function copy(text: string, event: MouseEvent) {
   font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
   margin-bottom: 0.9rem;
 }
 
@@ -380,11 +380,13 @@ async function copy(text: string, event: MouseEvent) {
   margin: 0 0 0.7rem;
 }
 
+/* This code is the point of the section, so it takes the primary text colour rather
+   than the muted supporting one. */
 .contrast code {
   font-family: var(--mobie-font-mono);
   font-size: 0.78rem;
   line-height: 1.6;
-  color: var(--mobie-muted);
+  color: var(--mobie-text);
 }
 
 .contrast__note {
@@ -466,7 +468,7 @@ async function copy(text: string, event: MouseEvent) {
 .tier__n {
   font-family: var(--mobie-font-mono);
   font-size: 0.78rem;
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
   padding-top: 0.15rem;
 }
 
@@ -491,7 +493,7 @@ async function copy(text: string, event: MouseEvent) {
 
 .tier__agents a:hover {
   border-color: var(--mobie-accent);
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
 }
 
 /* Install */
@@ -513,7 +515,7 @@ async function copy(text: string, event: MouseEvent) {
 .step__n {
   font-family: var(--mobie-font-mono);
   font-size: 0.78rem;
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
 }
 
 .step__code {
@@ -533,7 +535,7 @@ async function copy(text: string, event: MouseEvent) {
   font-family: var(--mobie-font-mono);
   font-size: 0.8rem;
   line-height: 1.7;
-  color: var(--mobie-muted);
+  color: var(--mobie-text);
   white-space: pre;
 }
 
@@ -554,7 +556,7 @@ async function copy(text: string, event: MouseEvent) {
 }
 
 .copy:hover {
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
   border-color: var(--mobie-accent);
 }
 
@@ -576,7 +578,7 @@ async function copy(text: string, event: MouseEvent) {
 .confirm code {
   font-family: var(--mobie-font-mono);
   font-size: 0.82rem;
-  color: var(--mobie-accent);
+  color: var(--mobie-accent-text);
   border: 1px solid var(--mobie-accent);
   border-radius: 99px;
   padding: 0.12rem 0.6rem;

@@ -45,7 +45,8 @@ const parts = computed(() => {
   font-size: 0.7rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--mobie-accent);
+  /* 0.7rem mono — small type takes the darker accent step. */
+  color: var(--mobie-accent-text);
   border: 1px solid var(--mobie-accent);
   border-radius: 99px;
   padding: 0.15rem 0.6rem;

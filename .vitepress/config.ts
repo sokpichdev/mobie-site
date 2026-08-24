@@ -18,6 +18,59 @@ const DESCRIPTION = 'Turn your AI coding agent into a Senior mobile engineer.'
 const SOCIAL_DESCRIPTION =
   'Architecture, security, testing and standards — so the code your agent generates is production-grade, not just plausible.'
 
+// Mermaid renders its own palette inside our container, so a stock theme clashes with the
+// page in at least one mode. vitepress-plugin-mermaid hard-forces `theme: 'dark'` whenever
+// <html> carries .dark, which no static `theme`/`themeVariables` can survive — so the
+// palette is applied as themeCSS instead. That lands in the SVG's own <style>, where CSS
+// custom properties still resolve from the document, so one rule set tracks both modes.
+const MERMAID_THEME_CSS = `
+  .node rect, .node circle, .node ellipse, .node polygon, .node path,
+  .statediagram-state rect, .labelBox, .note, rect.actor {
+    fill: var(--mobie-surface) !important;
+    stroke: var(--mobie-rule) !important;
+  }
+  .cluster rect, .statediagram-cluster rect {
+    fill: var(--vp-c-bg-alt) !important;
+    stroke: var(--mobie-rule) !important;
+  }
+  .nodeLabel, .edgeLabel, .label, .cluster-label, .titleText, .messageText,
+  .loopText, .loopText tspan, .noteText, .noteText tspan, .labelText, .labelText tspan,
+  text.actor tspan, .stateLabel, .statediagram-state text {
+    fill: var(--mobie-text) !important;
+    color: var(--mobie-text) !important;
+    font-family: var(--mobie-font-body) !important;
+  }
+  /* Edge labels are chips punched through the link they sit on. Mermaid paints the chip
+     on several nested elements (.edgeLabel, its <p>, and .labelBkg), so all of them have
+     to be repainted or a grey slab shows through. */
+  .edgeLabel, .edgeLabel p, .edgeLabel span, .labelBkg {
+    background-color: var(--mobie-surface) !important;
+    color: var(--mobie-text) !important;
+  }
+  .edgeLabel rect {
+    fill: var(--mobie-surface) !important;
+  }
+  /* Subgraph titles carry their own hard-coded colour, on the label's inner span. */
+  .cluster-label text, .cluster-label span, .cluster-label p, .cluster text, .cluster span {
+    fill: var(--mobie-text) !important;
+    color: var(--mobie-text) !important;
+    background-color: transparent !important;
+  }
+  .edgePath .path, .flowchart-link, .transition, .messageLine0, .messageLine1,
+  .loopLine, .actor-line, .relation {
+    stroke: var(--mobie-muted) !important;
+  }
+  marker path, .arrowheadPath, .marker, .marker path {
+    fill: var(--mobie-muted) !important;
+    stroke: var(--mobie-muted) !important;
+  }
+  /* State start/end terminals are the one place the accent earns its keep. */
+  .statediagram-state .start-state, .node circle.state-start, [class*='state-start'] {
+    fill: var(--mobie-accent) !important;
+    stroke: var(--mobie-accent) !important;
+  }
+`
+
 export default withMermaid(defineConfig({
   title: TITLE,
   description: DESCRIPTION,
@@ -78,6 +131,15 @@ export default withMermaid(defineConfig({
   // route-count check) expects top-level dist/, so pin it explicitly.
   outDir: 'dist',
   cleanUrls: true,
+  // Page dates come from `git log -1` on the source file inside .content/toolkit — see
+  // scripts/fetch-toolkit.sh, which clones full (blobless) history so these are real.
+  // Generated index pages are untracked there, so they simply carry no date.
+  lastUpdated: true,
+  mermaid: {
+    theme: 'base',
+    fontFamily: 'var(--mobie-font-body)',
+    themeCSS: MERMAID_THEME_CSS
+  },
   markdown: {
     config: (md: MarkdownIt) => {
       vPreExceptLanding(md)
@@ -113,6 +175,11 @@ export default withMermaid(defineConfig({
       }
     ],
     sidebar: buildSidebar(SRC, pages),
+    outline: { level: [2, 3], label: 'On this page' },
+    lastUpdated: {
+      text: 'Updated',
+      formatOptions: { dateStyle: 'medium', forceLocale: false }
+    },
     search: {
       provider: 'local',
       options: {
@@ -125,6 +192,11 @@ export default withMermaid(defineConfig({
     editLink: {
       pattern: 'https://github.com/sokpichdev/mobile-engineering-agents/edit/main/:path',
       text: 'Edit this page on GitHub'
+    },
+    footer: {
+      message:
+        'Released under the <a href="https://github.com/sokpichdev/mobile-engineering-agents/blob/main/LICENSE">MIT License</a>. Content is generated from the <a href="https://github.com/sokpichdev/mobile-engineering-agents">Mobile Engineering Agents</a> toolkit.',
+      copyright: `© ${new Date().getFullYear()} Sok Pich`
     }
   }
 }))
