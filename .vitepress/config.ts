@@ -3,6 +3,13 @@ import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import { vPreExceptLanding } from './vpre'
 import { collectPages, buildRewrites, buildSidebar, countInventory, fixRootReadmeLinks } from './toolkit-tree'
+import {
+  stripBadges,
+  dropNavRow,
+  stripHeadingEmoji,
+  collapseHrBeforeHeading,
+  isRootReadme
+} from './render-fixes'
 import type MarkdownIt from 'markdown-it'
 
 const SRC = './.content/toolkit'
@@ -156,10 +163,24 @@ export default withMermaid(defineConfig({
   markdown: {
     config: (md: MarkdownIt) => {
       vPreExceptLanding(md)
-      // Post-process rendered HTML to correct root-README hrefs — see fixRootReadmeLinks
-      // in ./toolkit-tree.ts for why this can't be handled by `rewrites` alone.
+      // Post-process rendered HTML. The toolkit is re-cloned on every build and must not
+      // be edited here (the CI content guard enforces that), so every repair to its
+      // markdown happens at render time. See ./toolkit-tree.ts for fixRootReadmeLinks and
+      // ./render-fixes.ts for the rest.
       const render = md.render.bind(md)
-      md.render = (src: string, env?: any) => fixRootReadmeLinks(render(src, env))
+      md.render = (src: string, env?: any) => {
+        // Heading emoji go before rendering, so the slug — and every anchor built from it
+        // — is computed from the cleaned text. The rest operate on the output.
+        let html = fixRootReadmeLinks(render(stripHeadingEmoji(src), env))
+        // Site-wide: badges are decoration everywhere, and one of them is a third-party
+        // visitor-tracking pixel. Doubled rules are likewise cosmetic.
+        html = stripBadges(html)
+        html = collapseHrBeforeHeading(html)
+        // Only the root README carries a hand-rolled table of contents that duplicates the
+        // outline sidebar. Elsewhere a row of links may be real content.
+        if (isRootReadme(env)) html = dropNavRow(html)
+        return html
+      }
     }
   },
   // Narrow, never blanket: each pattern covers a target that cannot render as a page.
