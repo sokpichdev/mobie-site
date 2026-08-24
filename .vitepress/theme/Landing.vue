@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useData } from 'vitepress'
+import CopyBlock from './CopyBlock.vue'
+import { SECTIONS } from './sections'
 
 const { theme } = useData()
 
@@ -8,19 +10,10 @@ const REPO = 'https://github.com/sokpichdev/mobile-engineering-agents'
 
 const inventory = computed<Record<string, number>>(() => theme.value.inventory ?? {})
 
-const INVENTORY_ROWS: Array<{ slug: string; label: string; blurb: string }> = [
-  { slug: 'agents', label: 'Agents', blurb: 'Loadable expert roles' },
-  { slug: 'skills', label: 'Skills', blurb: 'Deep, single-topic know-how' },
-  { slug: 'workflows', label: 'Workflows', blurb: 'Step-by-step procedures' },
-  { slug: 'checklists', label: 'Checklists', blurb: 'Objective review gates' },
-  { slug: 'standards', label: 'Standards', blurb: 'Non-negotiable rules' },
-  { slug: 'architecture', label: 'Architecture', blurb: 'Reference designs' },
-  { slug: 'prompts', label: 'Prompts', blurb: 'Copy-paste prompts' },
-  { slug: 'templates', label: 'Templates', blurb: 'Boilerplate scaffolding' },
-  { slug: 'examples', label: 'Examples', blurb: 'Reference apps' }
-]
+const rows = computed(() => SECTIONS.filter((r) => inventory.value[r.slug] > 0))
 
-const rows = computed(() => INVENTORY_ROWS.filter((r) => inventory.value[r.slug] > 0))
+// The whole install, on one line, for readers who are already convinced.
+const CLONE_COMMAND = `git clone ${REPO}.git .mobile-agents`
 
 const TIERS = [
   {
@@ -90,34 +83,10 @@ const INSTALL_STEPS: Array<{ n: string; title: string; code: string; copyText?: 
 ]
 
 const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aider']
-
-// The ✓/✗ on the button is a CSS ::after pseudo-element, which screen readers do not
-// announce. This live region carries the same result as text.
-const copyStatus = ref('')
-
-async function copy(text: string, event: MouseEvent) {
-  const button = event.currentTarget as HTMLButtonElement
-  const settle = (state: string, message: string) => {
-    button.dataset.copied = state
-    copyStatus.value = message
-    setTimeout(() => {
-      delete button.dataset.copied
-      copyStatus.value = ''
-    }, 1400)
-  }
-  try {
-    await navigator.clipboard.writeText(text)
-    settle('true', 'Copied to clipboard')
-  } catch {
-    settle('failed', 'Copy failed')
-  }
-}
 </script>
 
 <template>
   <div class="landing">
-    <p class="sr-only" role="status" aria-live="polite">{{ copyStatus }}</p>
-
     <!-- ── Hero ─────────────────────────────────────────── -->
     <section class="hero">
       <p class="eyebrow">01 — The problem</p>
@@ -160,6 +129,11 @@ async function copy(text: string, event: MouseEvent) {
         <a class="btn btn--primary" href="#install">Get started</a>
         <a class="btn" href="/introduction">Read the docs</a>
       </div>
+
+      <div class="quickstart">
+        <p class="quickstart__label">Already convinced?</p>
+        <CopyBlock compact :code="CLONE_COMMAND" label="Copy the install command" />
+      </div>
     </section>
 
     <!-- ── Tier map ─────────────────────────────────────── -->
@@ -201,17 +175,11 @@ async function copy(text: string, event: MouseEvent) {
             <span class="step__n">{{ step.n }}</span>
             <h3>{{ step.title }}</h3>
           </div>
-          <div class="step__code">
-            <pre><code>{{ step.code }}</code></pre>
-            <button
-              class="copy"
-              type="button"
-              :aria-label="`Copy step ${step.n} commands`"
-              @click="copy(step.copyText ?? step.code, $event)"
-            >
-              Copy
-            </button>
-          </div>
+          <CopyBlock
+            :code="step.code"
+            :copy-text="step.copyText"
+            :label="`Copy step ${step.n} commands`"
+          />
         </li>
       </ol>
 
@@ -265,19 +233,6 @@ async function copy(text: string, event: MouseEvent) {
   scroll-margin-top: calc(var(--vp-nav-height) + 1rem);
 }
 
-/* Visible to assistive tech, not to the eye — used for the copy live region. */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 .eyebrow {
   font-family: var(--mobie-font-mono);
   font-size: 0.72rem;
@@ -328,7 +283,6 @@ async function copy(text: string, event: MouseEvent) {
    scrolling within it. min-width:0 lets the track shrink and hands overflow to the <pre>. */
 .contrast__col,
 .step,
-.step__code,
 .tier__agents,
 .inventory__grid a {
   min-width: 0;
@@ -423,10 +377,25 @@ async function copy(text: string, event: MouseEvent) {
   color: var(--mobie-ground);
 }
 
+/* Quickstart: the whole install, one line, directly under the CTA row. */
+.quickstart {
+  margin-top: 1.6rem;
+  max-width: 40rem;
+}
+
+.quickstart__label {
+  font-family: var(--mobie-font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mobie-muted);
+  margin: 0 0 0.5rem;
+}
+
 /* Hover is the only affordance these carry otherwise; keyboard users need the ring.
-   Outlines follow border-radius, so the pill and card shapes stay intact. */
+   Outlines follow border-radius, so the pill and card shapes stay intact.
+   (.copy carries its own ring inside CopyBlock, where its styles live.) */
 .btn:focus-visible,
-.copy:focus-visible,
 .tier__agents a:focus-visible,
 .inventory__grid a:focus-visible {
   outline: 2px solid var(--mobie-accent);
@@ -516,58 +485,6 @@ async function copy(text: string, event: MouseEvent) {
   font-family: var(--mobie-font-mono);
   font-size: 0.78rem;
   color: var(--mobie-accent-text);
-}
-
-.step__code {
-  position: relative;
-}
-
-.step__code pre {
-  background: var(--mobie-surface);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 5px;
-  padding: 0.9rem 4.5rem 0.9rem 0.9rem;
-  overflow-x: auto;
-  margin: 0;
-}
-
-.step__code code {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.8rem;
-  line-height: 1.7;
-  color: var(--mobie-text);
-  white-space: pre;
-}
-
-.copy {
-  position: absolute;
-  top: 0.55rem;
-  right: 0.55rem;
-  font-family: var(--mobie-font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: var(--mobie-ground);
-  color: var(--mobie-muted);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 3px;
-  padding: 0.25rem 0.5rem;
-  cursor: pointer;
-}
-
-.copy:hover {
-  color: var(--mobie-accent-text);
-  border-color: var(--mobie-accent);
-}
-
-.copy[data-copied='true']::after {
-  content: ' ✓';
-  color: var(--mobie-positive);
-}
-
-.copy[data-copied='failed']::after {
-  content: ' ✗';
-  color: var(--mobie-negative);
 }
 
 .confirm {

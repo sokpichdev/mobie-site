@@ -3,6 +3,7 @@ import DefaultTheme from 'vitepress/theme'
 import type { Theme } from 'vitepress'
 import PlatformBadge from './PlatformBadge.vue'
 import Landing from './Landing.vue'
+import NotFound from './NotFound.vue'
 import './palette.css'
 import './editorial.css'
 
@@ -10,7 +11,8 @@ export default {
   extends: DefaultTheme,
   Layout() {
     return h(DefaultTheme.Layout, null, {
-      'doc-before': () => h(PlatformBadge)
+      'doc-before': () => h(PlatformBadge),
+      'not-found': () => h(NotFound)
     })
   },
   enhanceApp({ app }) {
