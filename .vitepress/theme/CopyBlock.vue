@@ -68,6 +68,7 @@ async function copy() {
   background: var(--mobie-surface);
   border: 1px solid var(--mobie-rule);
   border-radius: 5px;
+  box-shadow: var(--mobie-shadow);
   padding: 0.9rem 4.5rem 0.9rem 0.9rem;
   overflow-x: auto;
   margin: 0;

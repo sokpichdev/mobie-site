@@ -16,6 +16,12 @@
   --mobie-positive: #14713a;  /* 5.7:1 on ground — the 0.72rem label needed the darker step */
   --mobie-negative: #b91c1c;  /* 6.1:1 on ground */
 
+  /* Two soft layers rather than one hard one: a tight contact shadow to lift the edge
+     off the paper, and a wide diffuse one for depth. Warm-tinted (it borrows the ink
+     colour, not pure black) so cards sit ON the paper instead of floating over a void. */
+  --mobie-shadow: 0 1px 2px rgba(26, 24, 20, 0.05), 0 4px 14px rgba(26, 24, 20, 0.05);
+  --mobie-shadow-lift: 0 2px 4px rgba(26, 24, 20, 0.06), 0 10px 24px rgba(26, 24, 20, 0.08);
+
   --mobie-font-display: Georgia, 'Times New Roman', serif;
   --mobie-font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mobie-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
@@ -54,6 +60,11 @@
   --mobie-accent-text: #fb923c; /* 8.3:1 on ground — small mono type, mirrors the light step */
   --mobie-positive: #4ade80;    /* 10.8:1 on ground */
   --mobie-negative: #f87171;    /* 6.8:1 on ground */
+
+  /* Shadows carry almost no weight against a near-black ground, so they go darker and
+     deeper — the same shapes, still readable on dark. */
+  --mobie-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.35);
+  --mobie-shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.45), 0 10px 24px rgba(0, 0, 0, 0.45);
 
   --vp-c-bg: var(--mobie-ground);
   --vp-c-bg-alt: #1a1618;

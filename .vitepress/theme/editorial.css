@@ -54,6 +54,7 @@
   background: var(--mobie-surface);
   border: 1px solid var(--mobie-rule);
   border-radius: 6px;
+  box-shadow: var(--mobie-shadow);
   padding: 1rem;
   overflow-x: auto;
 }

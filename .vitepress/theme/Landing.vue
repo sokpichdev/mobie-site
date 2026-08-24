@@ -138,7 +138,7 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 
     <!-- ── Tier map ─────────────────────────────────────── -->
     <section class="tiers">
-      <p class="eyebrow">02 — The team</p>
+      <p class="eyebrow eyebrow--anchored">02 — The team</p>
       <h2>You don't get an assistant. You get a team.</h2>
       <p class="lede">
         Specialist roles organised into four tiers that hand off to each other. Higher tiers
@@ -165,7 +165,7 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 
     <!-- ── Install ──────────────────────────────────────── -->
     <section id="install" class="install">
-      <p class="eyebrow">03 — Install</p>
+      <p class="eyebrow eyebrow--anchored">03 — Install</p>
       <h2>Running in three steps</h2>
       <p class="lede">The everyday workflow needs zero file paths.</p>
 
@@ -191,7 +191,7 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 
     <!-- ── Inventory ────────────────────────────────────── -->
     <section class="inventory">
-      <p class="eyebrow">04 — What's inside</p>
+      <p class="eyebrow eyebrow--anchored">04 — What's inside</p>
       <h2>Everything your agent can load</h2>
       <ul class="inventory__grid">
         <li v-for="row in rows" :key="row.slug">
@@ -206,7 +206,7 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 
     <!-- ── Tools ────────────────────────────────────────── -->
     <section class="tools">
-      <p class="eyebrow">05 — Compatibility</p>
+      <p class="eyebrow eyebrow--anchored">05 — Compatibility</p>
       <h2>Works with the agent you already use</h2>
       <ul class="tools__list">
         <li v-for="tool in TOOLS" :key="tool">{{ tool }}</li>
@@ -220,14 +220,14 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 
 <style scoped>
 .landing {
-  max-width: 62rem;
+  max-width: 66rem;
   margin: 0 auto;
-  padding: 3rem 1.5rem 6rem;
+  padding: 3rem 1.5rem 3rem;
   color: var(--mobie-text);
 }
 
 .landing section {
-  margin-bottom: 5.5rem;
+  margin-bottom: 4.5rem;
   /* The VitePress navbar is sticky, so an in-page jump lands the section heading
      underneath it without this offset. */
   scroll-margin-top: calc(var(--vp-nav-height) + 1rem);
@@ -242,10 +242,28 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
   margin-bottom: 0.9rem;
 }
 
+/* Anchors each section to a hairline with a short accent tick — the same treatment
+   editorial.css gives .vp-doc h2, so the landing page and the docs read as one system.
+   The hero opens the page and needs no rule above it. */
+.eyebrow--anchored {
+  border-top: 1.5px solid var(--mobie-text);
+  padding-top: 1.4rem;
+  margin-top: 0;
+}
+
+.eyebrow--anchored::before {
+  content: '';
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--mobie-accent);
+  margin-bottom: 0.9rem;
+}
+
 .landing h1 {
   font-family: var(--mobie-font-display);
   font-weight: 400;
-  font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+  font-size: clamp(2.4rem, 5.5vw, 4rem);
   line-height: 1.1;
   letter-spacing: -0.015em;
   margin: 0 0 1rem;
@@ -296,9 +314,13 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
   margin-bottom: 2rem;
 }
 
+/* A flex column with the <pre> flexed lets both code blocks stretch to the taller of the
+   two, so the captions underneath land on one baseline instead of stepping. */
 .contrast__col {
   border-top: 2px solid var(--mobie-rule);
   padding-top: 0.9rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .contrast__col--bad {
@@ -326,9 +348,11 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 }
 
 .contrast pre {
+  flex: 1;
   background: var(--mobie-surface);
   border: 1px solid var(--mobie-rule);
   border-radius: 5px;
+  box-shadow: var(--mobie-shadow);
   padding: 0.9rem;
   overflow-x: auto;
   margin: 0 0 0.7rem;
@@ -347,6 +371,11 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
   font-size: 0.85rem;
   color: var(--mobie-muted);
   margin: 0;
+}
+
+/* Hero code is denser than the install steps; hold the columns apart a little more. */
+.contrast {
+  gap: 1.75rem;
 }
 
 /* CTA */
@@ -411,10 +440,14 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
   gap: 1px;
   background: var(--mobie-rule);
   border: 1px solid var(--mobie-rule);
+  border-radius: 6px;
+  box-shadow: var(--mobie-shadow);
+  /* The rows paint to the corners, so they need clipping to sit inside the radius. */
+  overflow: hidden;
 }
 
 .tier {
-  background: var(--mobie-ground);
+  background: var(--mobie-surface);
   padding: 1.4rem;
   display: grid;
   grid-template-columns: minmax(0, 18rem) 1fr;
@@ -454,10 +487,12 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
   display: inline-block;
   font-size: 0.82rem;
   padding: 0.28rem 0.7rem;
+  background: var(--mobie-ground);
   border: 1px solid var(--mobie-rule);
   border-radius: 99px;
   color: var(--mobie-text);
   text-decoration: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .tier__agents a:hover {
@@ -503,28 +538,38 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 }
 
 /* Inventory */
+/* The separators used to be a --mobie-rule background showing through 1px gaps, which
+   painted every UNFILLED grid slot as a solid beige block — nine sections in a five-column
+   grid left one, and it read as a rendering fault. Drawing the rules on the cells instead
+   means an empty slot is simply paper. The section count comes from the toolkit at build
+   time, so this has to hold for any number of cells, not just today's nine. */
 .inventory__grid {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 1px;
-  background: var(--mobie-rule);
+  background: var(--mobie-surface);
   border: 1px solid var(--mobie-rule);
+  border-radius: 6px;
+  box-shadow: var(--mobie-shadow);
+  /* Clips the trailing cell rules that would otherwise cross the container border. */
+  overflow: hidden;
 }
 
 .inventory__grid a {
   display: block;
-  background: var(--mobie-ground);
   padding: 1.1rem;
   height: 100%;
   text-decoration: none;
   color: var(--mobie-text);
+  /* Right and bottom hairlines, drawn without taking layout space. */
+  box-shadow: 1px 0 0 var(--mobie-rule), 0 1px 0 var(--mobie-rule);
+  transition: background 0.15s ease;
 }
 
 .inventory__grid a:hover {
-  background: var(--mobie-surface);
+  background: var(--vp-c-bg-alt);
 }
 
 .inventory__count {
@@ -563,15 +608,21 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 .tools__list li {
   font-size: 0.85rem;
   padding: 0.35rem 0.85rem;
+  background: var(--mobie-surface);
   border: 1px solid var(--mobie-rule);
   border-radius: 3px;
-  color: var(--mobie-muted);
+  color: var(--mobie-text);
+  box-shadow: var(--mobie-shadow);
 }
 
 @media (max-width: 720px) {
   .contrast,
   .tier {
     grid-template-columns: 1fr;
+  }
+
+  .landing section {
+    margin-bottom: 3rem;
   }
 }
 </style>

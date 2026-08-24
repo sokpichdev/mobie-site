@@ -87,29 +87,34 @@ kbd {
   text-decoration: none;
 }
 
+/* Cell-drawn separators rather than a background showing through gaps, so an unfilled
+   grid slot is paper instead of a solid block — see the same note on .inventory__grid. */
 .notfound__grid {
   list-style: none;
   padding: 0;
   margin: 0 0 2rem;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  gap: 1px;
-  background: var(--mobie-rule);
+  background: var(--mobie-surface);
   border: 1px solid var(--mobie-rule);
+  border-radius: 6px;
+  box-shadow: var(--mobie-shadow);
+  overflow: hidden;
 }
 
 .notfound__grid a {
   display: block;
   min-width: 0;
   height: 100%;
-  background: var(--mobie-ground);
   padding: 0.9rem 1rem;
   text-decoration: none;
   color: var(--mobie-text);
+  box-shadow: 1px 0 0 var(--mobie-rule), 0 1px 0 var(--mobie-rule);
+  transition: background 0.15s ease;
 }
 
 .notfound__grid a:hover {
-  background: var(--mobie-surface);
+  background: var(--vp-c-bg-alt);
 }
 
 .notfound__grid a:focus-visible,
