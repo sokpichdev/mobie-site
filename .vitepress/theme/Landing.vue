@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useData } from 'vitepress'
 
 const { theme } = useData()
@@ -68,7 +68,7 @@ const TIERS = [
   }
 ]
 
-const INSTALL_STEPS = [
+const INSTALL_STEPS: Array<{ n: string; title: string; code: string; copyText?: string }> = [
   {
     n: '01',
     title: 'Clone the toolkit into your project',
@@ -82,27 +82,42 @@ const INSTALL_STEPS = [
   {
     n: '03',
     title: 'Describe what you want',
-    code: '> Build a Profile screen that loads /me and stores\n  the auth token securely.'
+    // The displayed text carries prompt decoration ('> ' and the wrap indent) that is part
+    // of the illustration, not the prompt. copyText is what actually reaches the clipboard.
+    code: '> Build a Profile screen that loads /me and stores\n  the auth token securely.',
+    copyText: 'Build a Profile screen that loads /me and stores the auth token securely.'
   }
 ]
 
 const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aider']
 
+// The ✓/✗ on the button is a CSS ::after pseudo-element, which screen readers do not
+// announce. This live region carries the same result as text.
+const copyStatus = ref('')
+
 async function copy(text: string, event: MouseEvent) {
   const button = event.currentTarget as HTMLButtonElement
+  const settle = (state: string, message: string) => {
+    button.dataset.copied = state
+    copyStatus.value = message
+    setTimeout(() => {
+      delete button.dataset.copied
+      copyStatus.value = ''
+    }, 1400)
+  }
   try {
     await navigator.clipboard.writeText(text)
-    button.dataset.copied = 'true'
-    setTimeout(() => delete button.dataset.copied, 1400)
+    settle('true', 'Copied to clipboard')
   } catch {
-    button.dataset.copied = 'failed'
-    setTimeout(() => delete button.dataset.copied, 1400)
+    settle('failed', 'Copy failed')
   }
 }
 </script>
 
 <template>
   <div class="landing">
+    <p class="sr-only" role="status" aria-live="polite">{{ copyStatus }}</p>
+
     <!-- ── Hero ─────────────────────────────────────────── -->
     <section class="hero">
       <p class="eyebrow">01 — The problem</p>
@@ -188,7 +203,14 @@ async function copy(text: string, event: MouseEvent) {
           </div>
           <div class="step__code">
             <pre><code>{{ step.code }}</code></pre>
-            <button class="copy" type="button" @click="copy(step.code, $event)">Copy</button>
+            <button
+              class="copy"
+              type="button"
+              :aria-label="`Copy step ${step.n} commands`"
+              @click="copy(step.copyText ?? step.code, $event)"
+            >
+              Copy
+            </button>
           </div>
         </li>
       </ol>
@@ -238,6 +260,22 @@ async function copy(text: string, event: MouseEvent) {
 
 .landing section {
   margin-bottom: 5.5rem;
+  /* The VitePress navbar is sticky, so an in-page jump lands the section heading
+     underneath it without this offset. */
+  scroll-margin-top: calc(var(--vp-nav-height) + 1rem);
+}
+
+/* Visible to assistive tech, not to the eye — used for the copy live region. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .eyebrow {
@@ -381,6 +419,16 @@ async function copy(text: string, event: MouseEvent) {
 .btn--primary {
   background: var(--mobie-text);
   color: var(--mobie-ground);
+}
+
+/* Hover is the only affordance these carry otherwise; keyboard users need the ring.
+   Outlines follow border-radius, so the pill and card shapes stay intact. */
+.btn:focus-visible,
+.copy:focus-visible,
+.tier__agents a:focus-visible,
+.inventory__grid a:focus-visible {
+  outline: 2px solid var(--mobie-accent);
+  outline-offset: 2px;
 }
 
 /* Tiers */
