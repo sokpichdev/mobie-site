@@ -131,6 +131,19 @@ export default withMermaid(defineConfig({
   // route-count check) expects top-level dist/, so pin it explicitly.
   outDir: 'dist',
   cleanUrls: true,
+  // `vitepress dev` renders a blank page without this. vitepress-plugin-mermaid registers
+  // <Mermaid> on VitePress's client app entry, so mermaid is imported eagerly on every
+  // route — and mermaid imports fastdom, which ships CJS only. Vite's dep optimizer is
+  // never told about it (the plugin pre-bundles dayjs/debug/cytoscape but not fastdom), so
+  // dev serves the raw CJS file, `import fastdom from 'fastdom'` finds no default export,
+  // and the module error takes the whole app down before it mounts. Both entry points
+  // mermaid imports have to be listed. Production builds were never affected — Rollup
+  // handles the CJS interop itself — so this only ever showed up in dev.
+  vite: {
+    optimizeDeps: {
+      include: ['fastdom', 'fastdom/extensions/fastdom-promised.js']
+    }
+  },
   // Page dates come from `git log -1` on the source file inside .content/toolkit — see
   // scripts/fetch-toolkit.sh, which clones full (blobless) history so these are real.
   // Generated index pages are untracked there, so they simply carry no date.
