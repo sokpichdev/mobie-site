@@ -2,7 +2,18 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { collectPages, countInventory, buildRewrites, buildSidebar, readTitle, fixRootReadmeLinks } from './toolkit-tree'
+import {
+  collectPages,
+  countInventory,
+  buildRewrites,
+  buildSidebar,
+  readTitle,
+  fixRootReadmeLinks,
+  extractIntroduction,
+  splitSections,
+  headingSlug,
+  TOOLKIT_REPO_URL
+} from './toolkit-tree'
 
 let root: string
 
@@ -285,5 +296,131 @@ describe('fixRootReadmeLinks', () => {
 
   it('preserves a trailing anchor on the bare no-prefix form', () => {
     expect(fixRootReadmeLinks('<a href="README#top">x</a>')).toBe('<a href="introduction#top">x</a>')
+  })
+})
+
+describe('extractIntroduction', () => {
+  const README = `<div align="center">
+
+# 📱 Mobile Engineering Agents
+
+[![License](x.svg)](LICENSE)
+
+[Docs Site](https://x) · [Quick Start](#quick-start)
+
+</div>
+
+---
+
+## Why this exists
+
+Prose that lives on the landing page.
+
+## Quick Start
+
+\`\`\`bash
+## not a heading
+\`\`\`
+
+## How to Use the Agents
+
+See [Contributing](#contributing--everyone-is-welcome) and [How It Works](#how-it-works).
+
+### Way 1 — Just describe the task (the default)
+
+<details>
+<summary><b>Claude Code</b></summary>
+
+\`\`\`text
+> Read agents/security_expert.md
+\`\`\`
+
+</details>
+
+<details>
+<summary><b>Cursor</b></summary>
+
+Use @workflows.
+
+</details>
+
+---
+
+## How It Works
+
+Four moves.
+
+---
+
+## Example Workflows
+
+\`\`\`mermaid
+flowchart LR
+    A --> B
+\`\`\`
+
+---
+
+## Roadmap
+
+- [ ] later
+`
+
+  it('keeps only the usage sections, in order, and drops the GitHub-facing rest', () => {
+    const out = extractIntroduction(README)
+    expect(out).toContain('## How to Use the Agents')
+    expect(out).toContain('## How It Works')
+    expect(out).toContain('## Example Workflows')
+    expect(out.indexOf('## How to Use')).toBeLessThan(out.indexOf('## How It Works'))
+    expect(out.indexOf('## How It Works')).toBeLessThan(out.indexOf('## Example Workflows'))
+    expect(out).not.toContain('## Why this exists')
+    expect(out).not.toContain('## Quick Start')
+    expect(out).not.toContain('## Roadmap')
+    expect(out).not.toContain('align="center"')
+    expect(out).not.toContain('shields')
+  })
+
+  it('opens with the site-owned title and on-ramp', () => {
+    const out = extractIntroduction(README)
+    expect(out.startsWith('# Using the agents')).toBe(true)
+    expect(out).toContain('/agents/code_reviewer')
+  })
+
+  it('keeps the mermaid fence so the build assertion still finds a diagram at /introduction', () => {
+    expect(extractIntroduction(README)).toContain('```mermaid')
+  })
+
+  it('does not treat "## " inside a fence as a section heading', () => {
+    const sections = splitSections(README).map((s) => s.title)
+    expect(sections).not.toContain('not a heading')
+  })
+
+  it('redirects anchors to dropped sections to GitHub and leaves kept anchors alone', () => {
+    const out = extractIntroduction(README)
+    expect(out).toContain(`](${TOOLKIT_REPO_URL}#contributing--everyone-is-welcome)`)
+    expect(out).toContain('](#how-it-works)')
+  })
+
+  it('converts a run of per-tool <details> into one ToolTabs with a slot per tool', () => {
+    const out = extractIntroduction(README)
+    expect(out).not.toContain('<details>')
+    expect(out).toContain(`<ToolTabs :tabs='["Claude Code","Cursor"]'>`)
+    expect(out).toContain('<template v-slot:tab-0>\n\n```text')
+    expect(out).toContain('<template v-slot:tab-1>\n\nUse @workflows.\n\n</template>')
+    expect(out.match(/<ToolTabs/g)).toHaveLength(1)
+  })
+
+  it('strips the trailing --- rule from each kept section', () => {
+    expect(extractIntroduction(README)).not.toMatch(/\n---\n/)
+  })
+})
+
+describe('headingSlug', () => {
+  it('matches GitHub slugs for the README headings that get linked', () => {
+    expect(headingSlug('Way 1 — Just describe the task (the default)')).toBe(
+      'way-1--just-describe-the-task-the-default'
+    )
+    expect(headingSlug('Contributing — everyone is welcome')).toBe('contributing--everyone-is-welcome')
+    expect(headingSlug('How It Works')).toBe('how-it-works')
   })
 })

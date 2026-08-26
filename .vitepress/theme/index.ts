@@ -4,6 +4,7 @@ import type { Theme } from 'vitepress'
 import PlatformBadge from './PlatformBadge.vue'
 import Landing from './Landing.vue'
 import NotFound from './NotFound.vue'
+import ToolTabs from './ToolTabs.vue'
 import './palette.css'
 import './theme.css'
 
@@ -18,5 +19,6 @@ export default {
   enhanceApp({ app }) {
     app.component('PlatformBadge', PlatformBadge)
     app.component('Landing', Landing)
+    app.component('ToolTabs', ToolTabs)
   }
 } satisfies Theme

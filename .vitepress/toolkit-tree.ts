@@ -221,3 +221,113 @@ export function fixRootReadmeLinks(html: string): string {
     (_m, prefix, suffix) => `href="${prefix ?? ''}introduction${suffix ?? ''}"`
   )
 }
+
+/** GitHub URL of the toolkit — the target for README anchors that the introduction page drops. */
+export const TOOLKIT_REPO_URL = 'https://github.com/sokpichdev/mobile-engineering-agents'
+
+/**
+ * README sections that make up /introduction, in order. Everything else in the root
+ * README either already lives on the landing page (Why / Quick Start / What's Inside /
+ * The Agent Team) or is GitHub-facing (badges, contributing, roadmap, license).
+ *
+ * "Example Workflows" is kept deliberately: it holds the README's mermaid handoff
+ * diagram, and scripts/assert-build.ts requires every mermaid source file to render a
+ * diagram at its route — dropping the section would fail that assertion.
+ */
+export const INTRODUCTION_SECTIONS = ['How to Use the Agents', 'How It Works', 'Example Workflows']
+
+/** Site-owned preamble: a title and a three-link on-ramp. Kept short so it cannot drift far. */
+const INTRODUCTION_PREAMBLE = `# Using the agents
+
+The landing page gets the toolkit installed. This page is what happens next: how to talk to
+it, how it routes your request, and what a real multi-agent handoff looks like.
+
+**Start here**
+
+1. [Install the toolkit](/#install) — three commands, zero file paths.
+2. [Your first task](#how-to-use-the-agents) — describe what you want; the entry file does the routing.
+3. [The agent you'll meet most](/agents/code_reviewer) — every chain ends at the Code Reviewer.
+`
+
+/** GitHub-style heading slug — enough to match the README's own in-page anchors. */
+export function headingSlug(text: string): string {
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/[`*_]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s/g, '-')
+}
+
+/**
+ * Split a markdown document on `## ` headings (fenced code is respected: a `## ` inside
+ * a fence is not a heading). Returns each section's title and body (heading line included).
+ */
+export function splitSections(src: string): Array<{ title: string; body: string }> {
+  const out: Array<{ title: string; body: string }> = []
+  let current: { title: string; body: string } | null = null
+  let inFence = false
+
+  for (const line of src.split('\n')) {
+    if (/^\s*```/.test(line)) inFence = !inFence
+    const m = !inFence && line.match(/^## (.+?)\s*$/)
+    if (m) {
+      if (current) out.push(current)
+      current = { title: m[1], body: '' }
+    }
+    if (current) current.body += line + '\n'
+  }
+  if (current) out.push(current)
+  return out
+}
+
+/**
+ * Turn the README's per-tool `<details><summary><b>Tool</b></summary>…</details>` run
+ * into one `<ToolTabs>` component with a named slot per tool. Blank lines around the
+ * slot tags are load-bearing: markdown-it only parses the body as markdown when the
+ * HTML tags sit in their own paragraph. Consecutive details blocks form one tab group.
+ */
+export function detailsToTabs(md: string): string {
+  const one = /<details>\s*<summary>\s*(?:<b>)?([^<]+?)(?:<\/b>)?\s*<\/summary>\s*([\s\S]*?)<\/details>/g
+  const run = new RegExp(`(?:${one.source}\\s*)+`, 'g')
+
+  return md.replace(run, (block) => {
+    const tabs: Array<{ label: string; body: string }> = []
+    for (const m of block.matchAll(one)) tabs.push({ label: m[1].trim(), body: m[2].trim() })
+    if (!tabs.length) return block
+
+    const labels = JSON.stringify(tabs.map((t) => t.label))
+    const slots = tabs
+      .map((t, i) => `<template v-slot:tab-${i}>\n\n${t.body}\n\n</template>`)
+      .join('\n\n')
+    return `<ToolTabs :tabs='${labels}'>\n\n${slots}\n\n</ToolTabs>\n\n`
+  })
+}
+
+/**
+ * Build the /introduction page from the toolkit's root README.
+ *
+ * Keeps INTRODUCTION_SECTIONS verbatim (source of truth stays the README), prefixed by a
+ * short site-owned on-ramp. In-page anchors pointing at sections that were dropped are
+ * redirected to the same anchor on GitHub so no link dead-ends; anchors into kept
+ * sections are left alone. `<details>` per-tool blocks become tabs.
+ */
+export function extractIntroduction(readme: string): string {
+  const sections = splitSections(readme)
+  const kept = INTRODUCTION_SECTIONS.map((title) => sections.find((s) => s.title === title)).filter(
+    (s): s is { title: string; body: string } => Boolean(s)
+  )
+
+  const keptAnchors = new Set<string>()
+  for (const s of kept) {
+    for (const h of s.body.matchAll(/^#{2,6} (.+?)\s*$/gm)) keptAnchors.add(headingSlug(h[1]))
+  }
+
+  let body = kept.map((s) => s.body.replace(/\n---\s*$/, '\n')).join('\n')
+  body = body.replace(/\]\(#([^)]+)\)/g, (m, anchor) =>
+    keptAnchors.has(anchor) ? m : `](${TOOLKIT_REPO_URL}#${anchor})`
+  )
+  body = detailsToTabs(body)
+
+  return `${INTRODUCTION_PREAMBLE}\n${body}`
+}

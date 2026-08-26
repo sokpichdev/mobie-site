@@ -2,7 +2,14 @@ import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import { vPreExceptLanding } from './vpre'
-import { collectPages, buildRewrites, buildSidebar, countInventory, fixRootReadmeLinks } from './toolkit-tree'
+import {
+  collectPages,
+  buildRewrites,
+  buildSidebar,
+  countInventory,
+  fixRootReadmeLinks,
+  extractIntroduction
+} from './toolkit-tree'
 import {
   stripBadges,
   dropNavRow,
@@ -177,11 +184,15 @@ export default withMermaid(defineConfig({
       // be edited here (the CI content guard enforces that), so every repair to its
       // markdown happens at render time. See ./toolkit-tree.ts for fixRootReadmeLinks and
       // ./render-fixes.ts for the rest.
+      // The root README becomes /introduction, but not verbatim: extractIntroduction keeps
+      // only the usage sections (the landing page owns the rest) — see ./toolkit-tree.ts.
+      // The page renderer sees the post-rewrite path (introduction.md); the local-search
+      // indexer sees the source path (README.md). Match both so the index agrees with the page.
+      const ROOT_README = new Set(['README.md', 'introduction.md'])
       const render = md.render.bind(md)
       md.render = (src: string, env?: any) => {
-        // Heading emoji go before rendering, so the slug — and every anchor built from it
-        // — is computed from the cleaned text. The rest operate on the output.
-        let html = fixRootReadmeLinks(render(stripHeadingEmoji(src), env))
+        const source = ROOT_README.has(env?.relativePath) ? extractIntroduction(src) : src
+        let html = fixRootReadmeLinks(render(stripHeadingEmoji(source), env))
         // Site-wide: badges are decoration everywhere, and one of them is a third-party
         // visitor-tracking pixel. Doubled rules are likewise cosmetic.
         html = stripBadges(html)
