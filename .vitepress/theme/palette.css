@@ -1,86 +1,115 @@
-/* Contrast: every foreground/background pair below clears WCAG AA (4.5:1 for body copy,
-   3:1 for text at or above 1.5rem) in BOTH modes. The measured ratios are in the comments;
-   re-check them before changing any value. */
+/* ─────────────────────────────────────────────────────────────────────────────
+   Design tokens — "engineering field manual".
+
+   Light is the primary surface: an off-white paper ground, hairline rules instead
+   of shadows, serif display headings over a humanist sans, and a single rust
+   accent used like ink — for links, the one CTA, and nothing decorative. Dark is
+   the same system inverted (warm near-black, not blue-black), not a second design.
+
+   Every token is defined once on :root (light) and re-declared under `html.dark`
+   so VitePress's appearance toggle flips the whole system in one place. VitePress's
+   own --vp-* variables are then mapped onto these, so the default theme's chrome
+   (nav, sidebar, search, code blocks) inherits the palette without per-component CSS.
+   ───────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  --mobie-ground: #faf8f4;
-  --mobie-surface: #ffffff;
-  --mobie-text: #1a1814;      /* 16.7:1 on ground */
-  --mobie-muted: #5c574e;     /* 6.8:1 on ground, 6.3:1 on bg-alt */
-  --mobie-rule: #ddd6c9;
-  --mobie-accent: #c2410c;    /* 4.9:1 on ground — display sizes, rules and borders */
-  /* The accent at 0.68–0.82rem (mono eyebrows, tier/step numbers) sits at 4.88:1 on the
-     ground and 4.52:1 on bg-alt — passing, but with no margin. Small type uses this
-     darker step instead: 6.1:1 on ground, 5.6:1 on bg-alt. */
-  --mobie-accent-text: #a63c0a;
-  --mobie-positive: #14713a;  /* 5.7:1 on ground — the 0.72rem label needed the darker step */
-  --mobie-negative: #b91c1c;  /* 6.1:1 on ground */
+  /* Canvas */
+  --m-bg: #f7f5f0;
+  --m-bg-alt: #f1eee7;
+  --m-surface: #fbfaf7;
+  --m-elevated: #ffffff;
 
-  /* Two soft layers rather than one hard one: a tight contact shadow to lift the edge
-     off the paper, and a wide diffuse one for depth. Warm-tinted (it borrows the ink
-     colour, not pure black) so cards sit ON the paper instead of floating over a void. */
-  --mobie-shadow: 0 1px 2px rgba(26, 24, 20, 0.05), 0 4px 14px rgba(26, 24, 20, 0.05);
-  --mobie-shadow-lift: 0 2px 4px rgba(26, 24, 20, 0.06), 0 10px 24px rgba(26, 24, 20, 0.08);
+  /* Hairlines — the only structural device in this system. */
+  --m-border: #e2ded4;
+  --m-border-strong: #c9c3b5;
 
-  --mobie-font-display: Georgia, 'Times New Roman', serif;
-  --mobie-font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mobie-font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+  /* Type */
+  --m-text: #1a1917;
+  --m-text-2: #55524c;
+  --m-text-3: #86817a;
 
-  /* Map VitePress's own tokens onto the palette. */
-  --vp-c-bg: var(--mobie-ground);
-  --vp-c-bg-alt: #f3efe7;
-  --vp-c-bg-soft: #f3efe7;
-  --vp-c-text-1: var(--mobie-text);
-  --vp-c-text-2: var(--mobie-muted);
-  --vp-c-divider: var(--mobie-rule);
-  --vp-c-brand-1: var(--mobie-accent);
-  --vp-c-brand-2: #9a3412;
-  --vp-c-brand-3: #7c2d12;  /* solid-button ground: 9.4:1 against white button text */
+  /* Accent — rust ink. */
+  --m-accent: #a3412b;
+  --m-accent-hi: #8a3322;
+  --m-accent-lo: #b8543d;
+  --m-accent-wash: rgba(163, 65, 43, 0.07);
+  --m-accent-line: rgba(163, 65, 43, 0.3);
 
-  /* Elevated surfaces (nav dropdowns, the mobile outline popover) and hairline borders.
-     Without these, VitePress's defaults float unstyled against the palette. */
-  --vp-c-bg-elv: var(--mobie-surface);
-  --vp-c-border: var(--mobie-rule);
-  --vp-c-gutter: var(--mobie-rule);
+  --m-positive: #2f7d4a;
+  --m-negative: #b3261e;
 
-  --vp-font-family-base: var(--mobie-font-body);
-  --vp-font-family-mono: var(--mobie-font-mono);
+  --m-font: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --m-font-serif: 'Source Serif 4', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --m-font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, monospace;
+
+  --m-radius: 6px;
+  --m-radius-sm: 4px;
 }
 
-/* Dark mode is the same brand with the lights off: a warm near-black ground (not a cool
-   blue-black) and an orange-family accent, so toggling the theme doesn't swap identity.
-   Every token here is the dark counterpart of a light one — same role, same warmth. */
-.dark {
-  --mobie-ground: #141114;
-  --mobie-surface: #1d191c;
-  --mobie-text: #ede8e2;        /* 15.4:1 on ground */
-  --mobie-muted: #a89f94;       /* 7.2:1 on ground, 6.7:1 on surface */
-  --mobie-rule: #322c2e;
-  --mobie-accent: #f97316;      /* 6.7:1 on ground */
-  --mobie-accent-text: #fb923c; /* 8.3:1 on ground — small mono type, mirrors the light step */
-  --mobie-positive: #4ade80;    /* 10.8:1 on ground */
-  --mobie-negative: #f87171;    /* 6.8:1 on ground */
+html.dark {
+  --m-bg: #151412;
+  --m-bg-alt: #1a1916;
+  --m-surface: #1c1b18;
+  --m-elevated: #242320;
 
-  /* Shadows carry almost no weight against a near-black ground, so they go darker and
-     deeper — the same shapes, still readable on dark. */
-  --mobie-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 14px rgba(0, 0, 0, 0.35);
-  --mobie-shadow-lift: 0 2px 4px rgba(0, 0, 0, 0.45), 0 10px 24px rgba(0, 0, 0, 0.45);
+  --m-border: #2c2a25;
+  --m-border-strong: #3c3932;
 
-  --vp-c-bg: var(--mobie-ground);
-  --vp-c-bg-alt: #1a1618;
-  --vp-c-bg-soft: #1d191c;
-  --vp-c-text-1: var(--mobie-text);
-  --vp-c-text-2: var(--mobie-muted);
-  --vp-c-divider: var(--mobie-rule);
-  --vp-c-brand-1: var(--mobie-accent);
-  --vp-c-brand-2: #ea580c;
-  /* Solid-button ground. VitePress prints white on brand-3, so it darkens going into dark
-     mode rather than lightening: white on #c2410c is 5.2:1. */
-  --vp-c-brand-3: #c2410c;
+  --m-text: #ece8df;
+  --m-text-2: #a8a295;
+  --m-text-3: #736e63;
 
-  /* Elevated surfaces (nav dropdowns, the mobile outline popover) and hairline borders.
-     Without these, VitePress's defaults float unstyled against the palette. */
-  --vp-c-bg-elv: var(--mobie-surface);
-  --vp-c-border: var(--mobie-rule);
-  --vp-c-gutter: var(--mobie-rule);
+  --m-accent: #d9704f;
+  --m-accent-hi: #e68a6c;
+  --m-accent-lo: #c25c3d;
+  --m-accent-wash: rgba(217, 112, 79, 0.11);
+  --m-accent-line: rgba(217, 112, 79, 0.34);
+
+  --m-positive: #5fbf7a;
+  --m-negative: #e5645a;
+}
+
+/* ── VitePress token mapping ────────────────────────────────────────────────
+   Anything the default theme paints reads from these. Keep the list exhaustive:
+   an unmapped --vp-* token falls back to VitePress's stock colour and floats
+   visibly against this palette. */
+:root {
+  --vp-c-bg: var(--m-bg);
+  --vp-c-bg-alt: var(--m-bg-alt);
+  --vp-c-bg-soft: var(--m-surface);
+  --vp-c-bg-elv: var(--m-elevated);
+
+  --vp-c-text-1: var(--m-text);
+  --vp-c-text-2: var(--m-text-2);
+  --vp-c-text-3: var(--m-text-3);
+
+  --vp-c-divider: var(--m-border);
+  --vp-c-border: var(--m-border);
+  --vp-c-gutter: var(--m-border);
+
+  --vp-c-brand-1: var(--m-accent);
+  --vp-c-brand-2: var(--m-accent-hi);
+  --vp-c-brand-3: var(--m-accent-lo);
+  --vp-c-brand-soft: var(--m-accent-wash);
+
+  --vp-c-default-soft: var(--m-surface);
+  --vp-c-tip-1: var(--m-accent);
+  --vp-c-tip-soft: var(--m-accent-wash);
+
+  --vp-font-family-base: var(--m-font);
+  --vp-font-family-mono: var(--m-font-mono);
+
+  /* Code blocks share the surface colour so fences read as part of the page. */
+  --vp-code-block-bg: var(--m-surface);
+  --vp-code-block-divider-color: var(--m-border);
+  --vp-code-line-highlight-color: var(--m-accent-wash);
+
+  --vp-button-brand-bg: var(--m-accent);
+  --vp-button-brand-hover-bg: var(--m-accent-hi);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #ffffff;
+
+  --vp-nav-height: 60px;
+  --vp-layout-max-width: 1500px;
+  --vp-sidebar-width: 268px;
 }

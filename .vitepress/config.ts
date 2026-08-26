@@ -33,63 +33,73 @@ const SOCIAL_DESCRIPTION =
 const MERMAID_THEME_CSS = `
   .node rect, .node circle, .node ellipse, .node polygon, .node path,
   .statediagram-state rect, .labelBox, .note, rect.actor {
-    fill: var(--mobie-surface) !important;
-    stroke: var(--mobie-rule) !important;
+    fill: var(--m-surface) !important;
+    stroke: var(--m-border) !important;
   }
   .cluster rect, .statediagram-cluster rect {
     fill: var(--vp-c-bg-alt) !important;
-    stroke: var(--mobie-rule) !important;
+    stroke: var(--m-border) !important;
   }
   .nodeLabel, .edgeLabel, .label, .cluster-label, .titleText, .messageText,
   .loopText, .loopText tspan, .noteText, .noteText tspan, .labelText, .labelText tspan,
   text.actor tspan, .stateLabel, .statediagram-state text {
-    fill: var(--mobie-text) !important;
-    color: var(--mobie-text) !important;
-    font-family: var(--mobie-font-body) !important;
+    fill: var(--m-text) !important;
+    color: var(--m-text) !important;
+    font-family: var(--m-font) !important;
   }
   /* Edge labels are chips punched through the link they sit on. Mermaid paints the chip
      on several nested elements (.edgeLabel, its <p>, and .labelBkg), so all of them have
      to be repainted or a grey slab shows through. */
   .edgeLabel, .edgeLabel p, .edgeLabel span, .labelBkg {
-    background-color: var(--mobie-surface) !important;
-    color: var(--mobie-text) !important;
+    background-color: var(--m-surface) !important;
+    color: var(--m-text) !important;
   }
   .edgeLabel rect {
-    fill: var(--mobie-surface) !important;
+    fill: var(--m-surface) !important;
   }
   /* Subgraph titles carry their own hard-coded colour, on the label's inner span. */
   .cluster-label text, .cluster-label span, .cluster-label p, .cluster text, .cluster span {
-    fill: var(--mobie-text) !important;
-    color: var(--mobie-text) !important;
+    fill: var(--m-text) !important;
+    color: var(--m-text) !important;
     background-color: transparent !important;
   }
   .edgePath .path, .flowchart-link, .transition, .messageLine0, .messageLine1,
   .loopLine, .actor-line, .relation {
-    stroke: var(--mobie-muted) !important;
+    stroke: var(--m-text-2) !important;
   }
   marker path, .arrowheadPath, .marker, .marker path {
-    fill: var(--mobie-muted) !important;
-    stroke: var(--mobie-muted) !important;
+    fill: var(--m-text-2) !important;
+    stroke: var(--m-text-2) !important;
   }
   /* State start/end terminals are the one place the accent earns its keep. */
   .statediagram-state .start-state, .node circle.state-start, [class*='state-start'] {
-    fill: var(--mobie-accent) !important;
-    stroke: var(--mobie-accent) !important;
+    fill: var(--m-accent) !important;
+    stroke: var(--m-accent) !important;
   }
 `
 
 export default withMermaid(defineConfig({
   title: TITLE,
   description: DESCRIPTION,
+  appearance: true,
   srcDir: SRC,
   head: [
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    [
+      'link',
+      {
+        rel: 'stylesheet',
+        href: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400;1,8..60,500&display=swap'
+      }
+    ],
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
     // .ico fallback for browsers (and crawlers) that ignore the SVG icon.
     ['link', { rel: 'alternate icon', type: 'image/x-icon', href: '/favicon.ico' }],
     ['link', { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }],
     // Two theme-colors so the mobile browser chrome tracks the palette in both modes.
-    ['meta', { name: 'theme-color', media: '(prefers-color-scheme: light)', content: '#faf8f4' }],
-    ['meta', { name: 'theme-color', media: '(prefers-color-scheme: dark)', content: '#141114' }],
+    ['meta', { name: 'theme-color', media: '(prefers-color-scheme: light)', content: '#f7f5f0' }],
+    ['meta', { name: 'theme-color', media: '(prefers-color-scheme: dark)', content: '#151412' }],
     // Invariant social tags only. The per-page ones are emitted by transformHead below —
     // `head` is static for the whole site and transformHead can only append, so putting
     // og:title here as well would ship two of them on every page.
@@ -189,6 +199,7 @@ export default withMermaid(defineConfig({
     /\/LICENSE$/,              // non-markdown file in the toolkit root
     /\.swiftlint\.yml$/,       // config file
     /PULL_REQUEST_TEMPLATE/,   // lives under .github/, excluded
+    /\/docs\/superpowers\//,   // internal design notes; docs/** is excluded by srcExclude
     /\/\.claude\//,            // dot-directory, excluded by rule and by VitePress
     /^http:\/\/localhost/      // local dashboard URL in the toolkit README
   ],

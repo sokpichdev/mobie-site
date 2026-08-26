@@ -37,18 +37,19 @@ const parts = computed(() => {
 .mobie-badge {
   display: flex;
   gap: 0.4rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.4rem;
 }
 
 .mobie-badge__chip {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  font-family: var(--m-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  /* 0.7rem mono — small type takes the darker accent step. */
-  color: var(--mobie-accent-text);
-  border: 1px solid var(--mobie-accent);
+  color: var(--m-accent);
+  border: 1px solid var(--m-accent-line);
+  background: var(--m-accent-wash);
   border-radius: 99px;
-  padding: 0.15rem 0.6rem;
+  padding: 0.22rem 0.6rem;
 }
 </style>

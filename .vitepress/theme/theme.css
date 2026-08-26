@@ -1,0 +1,377 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Field-manual treatment on top of VitePress's default theme.
+
+   Four rules run through everything below:
+     · Structure comes from 1px hairlines, never from shadows or fills.
+     · Serif is the heading voice; sans is the reading voice; monospace,
+       uppercase, letter-spaced text is the label voice (eyebrows, table
+       headers, badges, tabs).
+     · The accent is ink: links, the one CTA, the active marker. Never a glow,
+       gradient or fill.
+     · Weights are 400 / 500 / 600 only — IBM Plex ships static steps.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Nav ────────────────────────────────────────────────────────────────────
+   Translucent and blurred so content scrolls under it, with a hairline instead
+   of VitePress's default solid divider. */
+.VPNav {
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+}
+
+.VPNavBar:not(.home.top):not(.has-sidebar) .wrapper,
+.VPNavBar.has-sidebar .content-body,
+.VPNavBar:not(.home) .divider-line {
+  background: transparent !important;
+}
+
+.VPNavBar {
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.VPNavBar:not(.top) {
+  background: color-mix(in srgb, var(--m-bg) 78%, transparent);
+  border-bottom-color: var(--m-border);
+}
+
+.VPNavBar .divider {
+  display: none;
+}
+
+.VPNavBarTitle .title {
+  font-family: var(--m-font-serif);
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  border-bottom: none !important;
+}
+
+.VPNavBarMenuLink,
+.VPNavBarMenuGroup .VPFlyout .button {
+  font-size: 13.5px !important;
+  font-weight: 400 !important;
+  letter-spacing: -0.005em;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────────
+   Quieter than the default: section titles become mono labels, items lose their
+   weight, and the active item is marked with an accent rail rather than colour
+   alone (so it survives at a glance and without colour vision). */
+.VPSidebar {
+  background: var(--m-bg) !important;
+  border-right: 1px solid var(--m-border);
+  padding-top: 1.25rem;
+}
+
+.VPSidebarItem.level-0 > .item > .text {
+  font-family: var(--m-font-mono);
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--m-text-3) !important;
+}
+
+.VPSidebarItem.level-0 {
+  padding-bottom: 18px;
+}
+
+.VPSidebarItem.is-link > .item > .link > .text,
+.VPSidebarItem.level-1 .link .text,
+.VPSidebarItem.level-2 .link .text {
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--m-text-2);
+  padding: 2px 0;
+  transition: color 0.12s ease;
+}
+
+.VPSidebarItem .link:hover .text {
+  color: var(--m-text);
+}
+
+.VPSidebarItem.is-active > .item .link .text {
+  color: var(--m-accent) !important;
+  font-weight: 500;
+}
+
+/* The rail. VitePress indents nested items with a left border on .items — reuse
+   that geometry so the marker lines up with the tree, not with the text. */
+.VPSidebarItem.level-1.is-active > .item,
+.VPSidebarItem.level-2.is-active > .item,
+.VPSidebarItem.level-3.is-active > .item {
+  position: relative;
+}
+
+.VPSidebarItem.level-1.is-active > .item::before,
+.VPSidebarItem.level-2.is-active > .item::before,
+.VPSidebarItem.level-3.is-active > .item::before {
+  content: '';
+  position: absolute;
+  left: -17px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--m-accent);
+}
+
+/* ── Document typography ───────────────────────────────────────────────────
+   Reference-manual scale: serif for h1/h2 (the running structure of the page),
+   sans for h3/h4 (sub-structure inside a section). Serif at modest weight reads
+   as a typeset document rather than a product page. */
+.vp-doc h1,
+.vp-doc h2 {
+  font-family: var(--m-font-serif);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  color: var(--m-text);
+}
+
+.vp-doc h3,
+.vp-doc h4 {
+  font-family: var(--m-font);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--m-text);
+}
+
+.vp-doc h1 {
+  font-size: 2.5rem;
+  line-height: 1.12;
+  letter-spacing: -0.018em;
+  margin-bottom: 0.6rem;
+}
+
+.vp-doc h2 {
+  font-size: 1.5rem;
+  border-top: 1px solid var(--m-border);
+  padding-top: 2.1rem;
+  margin-top: 3.2rem;
+}
+
+.vp-doc h3 {
+  font-size: 1.02rem;
+  margin-top: 2.2rem;
+}
+
+.vp-doc h4 {
+  font-size: 0.95rem;
+}
+
+.vp-doc p,
+.vp-doc li {
+  font-size: 15.5px;
+  line-height: 1.72;
+  color: var(--m-text-2);
+}
+
+.vp-doc strong {
+  color: var(--m-text);
+  font-weight: 600;
+}
+
+.vp-doc a {
+  font-weight: 500;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--m-accent-line);
+  transition: text-decoration-color 0.15s ease;
+}
+
+.vp-doc a:hover {
+  text-decoration-color: var(--m-accent);
+}
+
+/* Anchor links: hidden until the heading is hovered. */
+.vp-doc .header-anchor {
+  color: var(--m-text-3);
+  font-weight: 400;
+}
+
+/* ── Inline code and fences ─────────────────────────────────────────────── */
+.vp-doc :not(pre) > code {
+  font-family: var(--m-font-mono);
+  font-size: 0.84em;
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: 5px;
+  padding: 0.15em 0.4em;
+  color: var(--m-text);
+}
+
+.vp-doc a > code {
+  color: var(--m-accent);
+  border-color: var(--m-accent-line);
+}
+
+.vp-doc div[class*='language-'] {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  margin: 1.5rem 0;
+}
+
+.vp-doc div[class*='language-'] pre {
+  padding: 1.05rem 0;
+}
+
+.vp-doc div[class*='language-'] code {
+  font-size: 13px;
+  line-height: 1.68;
+}
+
+/* The language tag sits as a mono label in the corner, and steps aside on hover
+   so it never collides with the copy button. */
+.vp-doc div[class*='language-'] > span.lang {
+  font-family: var(--m-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--m-text-3);
+  top: 9px;
+  right: 14px;
+}
+
+.vp-doc div[class*='language-'] > button.copy {
+  border-radius: var(--m-radius-sm);
+  border-color: var(--m-border);
+  background-color: var(--m-elevated);
+}
+
+/* ── Tables ─────────────────────────────────────────────────────────────── */
+.vp-doc table {
+  display: table;
+  width: 100%;
+  font-size: 14px;
+  border-collapse: collapse;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  overflow: hidden;
+  margin: 1.6rem 0;
+}
+
+.vp-doc th {
+  font-family: var(--m-font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--m-text-3);
+  background: var(--m-surface);
+  border: none;
+  border-bottom: 1px solid var(--m-border);
+  padding: 0.7rem 0.95rem;
+  text-align: left;
+}
+
+.vp-doc td {
+  border: none;
+  border-bottom: 1px solid var(--m-border);
+  padding: 0.7rem 0.95rem;
+  color: var(--m-text-2);
+  background: transparent;
+}
+
+.vp-doc tr:last-child td {
+  border-bottom: none;
+}
+
+.vp-doc tr {
+  background: transparent !important;
+}
+
+/* ── Blockquotes and callouts ──────────────────────────────────────────── */
+.vp-doc blockquote {
+  border-left: 2px solid var(--m-accent-line);
+  background: var(--m-accent-wash);
+  border-radius: 0 var(--m-radius-sm) var(--m-radius-sm) 0;
+  padding: 0.85rem 1.1rem;
+  margin: 1.5rem 0;
+}
+
+.vp-doc blockquote > p {
+  margin: 0;
+  color: var(--m-text-2);
+  font-size: 14.5px;
+}
+
+.vp-doc .custom-block {
+  border-radius: var(--m-radius);
+  border: 1px solid var(--m-border);
+  font-size: 14.5px;
+}
+
+.vp-doc .custom-block-title {
+  font-family: var(--m-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+/* ── Mermaid ───────────────────────────────────────────────────────────── */
+.vp-doc .mermaid {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  padding: 1.4rem;
+  margin: 1.6rem 0;
+  overflow-x: auto;
+}
+
+/* ── Page chrome: outline, prev/next, edit link ────────────────────────── */
+.VPDocAsideOutline .outline-title {
+  font-family: var(--m-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--m-text-3);
+}
+
+.VPDocAsideOutline .outline-link {
+  font-size: 13px;
+  color: var(--m-text-2);
+}
+
+.VPDocFooter .pager-link {
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  background: transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.VPDocFooter .pager-link:hover {
+  border-color: var(--m-border-strong);
+  background: var(--m-surface);
+}
+
+.VPDocFooter .pager-link .desc {
+  font-family: var(--m-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--m-text-3);
+}
+
+/* ── Search ────────────────────────────────────────────────────────────── */
+.DocSearch-Button {
+  border: 1px solid var(--m-border) !important;
+  border-radius: var(--m-radius-sm) !important;
+  background: var(--m-surface) !important;
+}
+
+.VPLocalSearchBox .shell,
+.VPLocalSearchBox .search-bar {
+  border-radius: var(--m-radius);
+  border-color: var(--m-border);
+}

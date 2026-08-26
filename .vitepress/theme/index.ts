@@ -5,7 +5,7 @@ import PlatformBadge from './PlatformBadge.vue'
 import Landing from './Landing.vue'
 import NotFound from './NotFound.vue'
 import './palette.css'
-import './editorial.css'
+import './theme.css'
 
 export default {
   extends: DefaultTheme,

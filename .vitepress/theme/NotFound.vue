@@ -40,21 +40,21 @@ const sections = computed(() => SECTIONS.filter((s) => inventory.value[s.slug] >
   max-width: 46rem;
   margin: 0 auto;
   padding: 5rem 1.5rem 7rem;
-  color: var(--mobie-text);
+  color: var(--m-text);
 }
 
 .eyebrow {
-  font-family: var(--mobie-font-mono);
+  font-family: var(--m-font-mono);
   font-size: 0.72rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--mobie-accent-text);
+  color: var(--m-accent);
   margin: 0 0 0.9rem;
 }
 
 .notfound h1 {
-  font-family: var(--mobie-font-display);
-  font-weight: 400;
+  font-family: var(--m-font-serif);
+  font-weight: 500;
   font-size: clamp(1.9rem, 4.5vw, 2.8rem);
   line-height: 1.15;
   letter-spacing: -0.015em;
@@ -62,19 +62,19 @@ const sections = computed(() => SECTIONS.filter((s) => inventory.value[s.slug] >
 }
 
 .lede {
-  color: var(--mobie-muted);
+  color: var(--m-text-2);
   font-size: 1.02rem;
   line-height: 1.65;
   margin: 0 0 1.6rem;
 }
 
 kbd {
-  font-family: var(--mobie-font-mono);
+  font-family: var(--m-font-mono);
   font-size: 0.78rem;
-  border: 1px solid var(--mobie-rule);
+  border: 1px solid var(--m-border);
   border-radius: 3px;
   padding: 0.05rem 0.35rem;
-  color: var(--mobie-text);
+  color: var(--m-text);
 }
 
 .notfound__primary {
@@ -82,23 +82,26 @@ kbd {
 }
 
 .notfound__primary a {
-  font-weight: 600;
-  color: var(--mobie-accent-text);
+  font-weight: 500;
+  color: var(--m-accent);
   text-decoration: none;
 }
 
-/* Cell-drawn separators rather than a background showing through gaps, so an unfilled
-   grid slot is paper instead of a solid block — see the same note on .inventory__grid. */
+.notfound__primary a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Cell-drawn separators rather than a background showing through gaps. */
 .notfound__grid {
   list-style: none;
   padding: 0;
   margin: 0 0 2rem;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  background: var(--mobie-surface);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 6px;
-  box-shadow: var(--mobie-shadow);
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
   overflow: hidden;
 }
 
@@ -108,8 +111,8 @@ kbd {
   height: 100%;
   padding: 0.9rem 1rem;
   text-decoration: none;
-  color: var(--mobie-text);
-  box-shadow: 1px 0 0 var(--mobie-rule), 0 1px 0 var(--mobie-rule);
+  color: var(--m-text);
+  box-shadow: 1px 0 0 var(--m-border), 0 1px 0 var(--m-border);
   transition: background 0.15s ease;
 }
 
@@ -120,7 +123,7 @@ kbd {
 .notfound__grid a:focus-visible,
 .notfound__primary a:focus-visible,
 .notfound__home a:focus-visible {
-  outline: 2px solid var(--mobie-accent);
+  outline: 2px solid var(--m-accent);
   outline-offset: 2px;
 }
 
@@ -133,7 +136,7 @@ kbd {
 .notfound__blurb {
   display: block;
   font-size: 0.8rem;
-  color: var(--mobie-muted);
+  color: var(--m-text-2);
   margin-top: 0.15rem;
   line-height: 1.45;
 }
@@ -144,6 +147,6 @@ kbd {
 }
 
 .notfound__home a {
-  color: var(--mobie-muted);
+  color: var(--m-text-2);
 }
 </style>
