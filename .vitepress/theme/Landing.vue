@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useData } from 'vitepress'
-import CopyBlock from './CopyBlock.vue'
-import { SECTIONS } from './sections'
 
 const { theme } = useData()
 
@@ -10,10 +8,19 @@ const REPO = 'https://github.com/sokpichdev/mobile-engineering-agents'
 
 const inventory = computed<Record<string, number>>(() => theme.value.inventory ?? {})
 
-const rows = computed(() => SECTIONS.filter((r) => inventory.value[r.slug] > 0))
+const INVENTORY_ROWS: Array<{ slug: string; label: string; blurb: string }> = [
+  { slug: 'agents', label: 'Agents', blurb: 'Loadable expert roles' },
+  { slug: 'skills', label: 'Skills', blurb: 'Deep, single-topic know-how' },
+  { slug: 'workflows', label: 'Workflows', blurb: 'Step-by-step procedures' },
+  { slug: 'checklists', label: 'Checklists', blurb: 'Objective review gates' },
+  { slug: 'standards', label: 'Standards', blurb: 'Non-negotiable rules' },
+  { slug: 'architecture', label: 'Architecture', blurb: 'Reference designs' },
+  { slug: 'prompts', label: 'Prompts', blurb: 'Copy-paste prompts' },
+  { slug: 'templates', label: 'Templates', blurb: 'Boilerplate scaffolding' },
+  { slug: 'examples', label: 'Examples', blurb: 'Reference apps' }
+]
 
-// The whole install, on one line, for readers who are already convinced.
-const CLONE_COMMAND = `git clone ${REPO}.git .mobile-agents`
+const rows = computed(() => INVENTORY_ROWS.filter((r) => inventory.value[r.slug] > 0))
 
 const TIERS = [
   {
@@ -61,7 +68,10 @@ const TIERS = [
   }
 ]
 
-const INSTALL_STEPS: Array<{ n: string; title: string; code: string; copyText?: string }> = [
+/** The hero diagram: a request enters, hands down the four tiers, and leaves merge-ready. */
+const ROUTE = TIERS.map((t) => ({ n: t.n, name: t.name, count: t.agents.length }))
+
+const INSTALL_STEPS = [
   {
     n: '01',
     title: 'Clone the toolkit into your project',
@@ -75,14 +85,23 @@ const INSTALL_STEPS: Array<{ n: string; title: string; code: string; copyText?: 
   {
     n: '03',
     title: 'Describe what you want',
-    // The displayed text carries prompt decoration ('> ' and the wrap indent) that is part
-    // of the illustration, not the prompt. copyText is what actually reaches the clipboard.
-    code: '> Build a Profile screen that loads /me and stores\n  the auth token securely.',
-    copyText: 'Build a Profile screen that loads /me and stores the auth token securely.'
+    code: '> Build a Profile screen that loads /me and stores\n  the auth token securely.'
   }
 ]
 
 const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aider']
+
+async function copy(text: string, event: MouseEvent) {
+  const button = event.currentTarget as HTMLButtonElement
+  try {
+    await navigator.clipboard.writeText(text)
+    button.dataset.copied = 'true'
+    setTimeout(() => delete button.dataset.copied, 1400)
+  } catch {
+    button.dataset.copied = 'failed'
+    setTimeout(() => delete button.dataset.copied, 1400)
+  }
+}
 </script>
 
 <template>
@@ -98,6 +117,23 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
         Architecture, security, testing and standards — so the code your agent generates is
         production-grade, not just plausible.
       </p>
+
+      <!-- Routing diagram: the one visual this toolkit has that nothing else does. -->
+      <ol class="route" aria-label="How a request flows through the agent tiers">
+        <li class="route__end">
+          <span class="route__name">Your request</span>
+        </li>
+        <li v-for="tier in ROUTE" :key="tier.n" class="route__tier">
+          <a href="#tiers">
+            <span class="route__n">{{ tier.n }}</span>
+            <span class="route__name">{{ tier.name }}</span>
+            <span class="route__count">{{ tier.count }} agents</span>
+          </a>
+        </li>
+        <li class="route__end route__end--done">
+          <span class="route__name">Merge-ready</span>
+        </li>
+      </ol>
 
       <div class="contrast">
         <div class="contrast__col contrast__col--bad">
@@ -129,16 +165,11 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
         <a class="btn btn--primary" href="#install">Get started</a>
         <a class="btn" href="/introduction">Read the docs</a>
       </div>
-
-      <div class="quickstart">
-        <p class="quickstart__label">Already convinced?</p>
-        <CopyBlock compact :code="CLONE_COMMAND" label="Copy the install command" />
-      </div>
     </section>
 
     <!-- ── Tier map ─────────────────────────────────────── -->
-    <section class="tiers">
-      <p class="eyebrow eyebrow--anchored">02 — The team</p>
+    <section id="tiers" class="tiers">
+      <p class="eyebrow">02 — The team</p>
       <h2>You don't get an assistant. You get a team.</h2>
       <p class="lede">
         Specialist roles organised into four tiers that hand off to each other. Higher tiers
@@ -165,7 +196,7 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 
     <!-- ── Install ──────────────────────────────────────── -->
     <section id="install" class="install">
-      <p class="eyebrow eyebrow--anchored">03 — Install</p>
+      <p class="eyebrow">03 — Install</p>
       <h2>Running in three steps</h2>
       <p class="lede">The everyday workflow needs zero file paths.</p>
 
@@ -175,11 +206,10 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
             <span class="step__n">{{ step.n }}</span>
             <h3>{{ step.title }}</h3>
           </div>
-          <CopyBlock
-            :code="step.code"
-            :copy-text="step.copyText"
-            :label="`Copy step ${step.n} commands`"
-          />
+          <div class="step__code">
+            <pre><code>{{ step.code }}</code></pre>
+            <button class="copy" type="button" @click="copy(step.code, $event)">Copy</button>
+          </div>
         </li>
       </ol>
 
@@ -191,7 +221,7 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 
     <!-- ── Inventory ────────────────────────────────────── -->
     <section class="inventory">
-      <p class="eyebrow eyebrow--anchored">04 — What's inside</p>
+      <p class="eyebrow">04 — What's inside</p>
       <h2>Everything your agent can load</h2>
       <ul class="inventory__grid">
         <li v-for="row in rows" :key="row.slug">
@@ -206,7 +236,7 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 
     <!-- ── Tools ────────────────────────────────────────── -->
     <section class="tools">
-      <p class="eyebrow eyebrow--anchored">05 — Compatibility</p>
+      <p class="eyebrow">05 — Compatibility</p>
       <h2>Works with the agent you already use</h2>
       <ul class="tools__list">
         <li v-for="tool in TOOLS" :key="tool">{{ tool }}</li>
@@ -219,81 +249,85 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
 </template>
 
 <style scoped>
+/* ─────────────────────────────────────────────────────────────────────────────
+   Landing page. Same system as the docs: hairlines, mono labels, serif headings,
+   one accent used as ink. Nothing glows.
+   ───────────────────────────────────────────────────────────────────────────── */
+
 .landing {
-  max-width: 66rem;
+  max-width: 68rem;
   margin: 0 auto;
-  padding: 3rem 1.5rem 3rem;
-  color: var(--mobie-text);
+  padding: 4.5rem 1.5rem 8rem;
+  color: var(--m-text);
 }
 
 .landing section {
-  margin-bottom: 4.5rem;
-  /* The VitePress navbar is sticky, so an in-page jump lands the section heading
-     underneath it without this offset. */
-  scroll-margin-top: calc(var(--vp-nav-height) + 1rem);
+  margin-bottom: 7rem;
+  position: relative;
 }
 
+/* ── Shared label / heading voice ───────────────────────────────────────── */
 .eyebrow {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--m-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
   text-transform: uppercase;
-  color: var(--mobie-accent-text);
-  margin-bottom: 0.9rem;
+  color: var(--m-accent);
+  margin: 0 0 1.4rem;
 }
 
-/* Anchors each section to a hairline with a short accent tick — the same treatment
-   editorial.css gives .vp-doc h2, so the landing page and the docs read as one system.
-   The hero opens the page and needs no rule above it. */
-.eyebrow--anchored {
-  border-top: 1.5px solid var(--mobie-text);
-  padding-top: 1.4rem;
-  margin-top: 0;
-}
-
-.eyebrow--anchored::before {
+/* A rule runs out from every section label — the page reads as numbered chapters. */
+.eyebrow::after {
   content: '';
-  display: block;
-  width: 2.5rem;
-  height: 2px;
-  background: var(--mobie-accent);
-  margin-bottom: 0.9rem;
+  flex: 1;
+  height: 1px;
+  background: var(--m-border);
 }
 
 .landing h1 {
-  font-family: var(--mobie-font-display);
-  font-weight: 400;
-  font-size: clamp(2.4rem, 5.5vw, 4rem);
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  margin: 0 0 1rem;
+  font-family: var(--m-font-serif);
+  font-size: clamp(2.5rem, 6vw, 4.1rem);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.1rem;
+  max-width: 20ch;
 }
 
+/* The one emphasised phrase: serif italic in ink. */
 .landing h1 em {
-  color: var(--mobie-accent);
   font-style: italic;
+  font-weight: 500;
+  color: var(--m-accent);
 }
 
 .landing h2 {
-  font-family: var(--mobie-font-display);
-  font-weight: 400;
-  font-size: clamp(1.5rem, 3.2vw, 2.1rem);
-  line-height: 1.2;
-  margin: 0 0 0.8rem;
+  font-family: var(--m-font-serif);
+  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.85rem;
+  max-width: 24ch;
 }
 
 .landing h3 {
-  font-size: 1rem;
+  font-size: 0.97rem;
   font-weight: 600;
+  letter-spacing: -0.012em;
   margin: 0;
 }
 
 .lede {
-  color: var(--mobie-muted);
+  color: var(--m-text-2);
   font-size: 1.02rem;
-  line-height: 1.65;
-  max-width: 40rem;
-  margin: 0 0 2rem;
+  line-height: 1.68;
+  max-width: 44rem;
+  margin: 0 0 2.4rem;
 }
 
 /* Grid and flex children default to min-width:auto and refuse to shrink below their
@@ -301,177 +335,269 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
    scrolling within it. min-width:0 lets the track shrink and hands overflow to the <pre>. */
 .contrast__col,
 .step,
+.step__code,
 .tier__agents,
 .inventory__grid a {
   min-width: 0;
 }
 
-/* Hero contrast */
+/* ── Hero ───────────────────────────────────────────────────────────────── */
+.hero {
+  padding-top: 2rem;
+}
+
+/* ── Routing diagram ────────────────────────────────────────────────────────
+   Request → four tiers → merge-ready, drawn in HTML so it reflows and inherits
+   the theme. Horizontal with arrow connectors; stacks vertically on narrow
+   screens. The endpoints are plain text; only the tiers are boxes. */
+.route {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2.6rem;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.route > li {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* Connector: a hairline with an arrowhead, sitting between every pair of nodes. */
+.route > li + li::before {
+  content: '';
+  flex: 0 0 1.6rem;
+  height: 1px;
+  background: var(--m-border-strong);
+  position: relative;
+}
+
+.route > li + li {
+  position: relative;
+}
+
+.route > li + li::after {
+  content: '';
+  position: absolute;
+  left: calc(1.6rem - 5px);
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-top: 1px solid var(--m-border-strong);
+  border-right: 1px solid var(--m-border-strong);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.route__tier {
+  flex: 1 1 0;
+}
+
+.route__tier a {
+  flex: 1;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--m-border-strong);
+  border-radius: var(--m-radius);
+  background: var(--m-surface);
+  color: var(--m-text);
+  text-decoration: none;
+  min-width: 0;
+  transition: border-color 0.15s ease;
+}
+
+.route__tier a:hover {
+  border-color: var(--m-accent);
+}
+
+.route__n {
+  font-family: var(--m-font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--m-accent);
+}
+
+.route__name {
+  font-weight: 600;
+  font-size: 0.86rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.route__count {
+  font-family: var(--m-font-mono);
+  font-size: 10.5px;
+  color: var(--m-text-3);
+  white-space: nowrap;
+}
+
+.route__end {
+  flex: 0 0 auto;
+}
+
+.route__end .route__name {
+  font-family: var(--m-font-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--m-text-3);
+}
+
+.route__end--done .route__name {
+  color: var(--m-positive);
+}
+
 .contrast {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  margin: 3rem 0 2.4rem;
 }
 
-/* A flex column with the <pre> flexed lets both code blocks stretch to the taller of the
-   two, so the captions underneath land on one baseline instead of stepping. */
 .contrast__col {
-  border-top: 2px solid var(--mobie-rule);
-  padding-top: 0.9rem;
-  display: flex;
-  flex-direction: column;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  background: var(--m-surface);
+  padding: 1.1rem;
 }
 
+/* The verdict colour lives on a single top hairline — the card itself stays neutral,
+   so red and green never fight the accent for attention. */
 .contrast__col--bad {
-  border-top-color: var(--mobie-negative);
+  box-shadow: inset 0 2px 0 0 var(--m-negative);
 }
 
 .contrast__col--good {
-  border-top-color: var(--mobie-positive);
+  box-shadow: inset 0 2px 0 0 var(--m-positive);
 }
 
 .contrast__label {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
+  font-family: var(--m-font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  margin: 0 0 0.7rem;
+  margin: 0 0 0.85rem;
 }
 
 .contrast__col--bad .contrast__label {
-  color: var(--mobie-negative);
+  color: var(--m-negative);
 }
 
 .contrast__col--good .contrast__label {
-  color: var(--mobie-positive);
+  color: var(--m-positive);
 }
 
 .contrast pre {
-  flex: 1;
-  background: var(--mobie-surface);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 5px;
-  box-shadow: var(--mobie-shadow);
-  padding: 0.9rem;
+  background: var(--m-bg);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-sm);
+  padding: 0.85rem;
   overflow-x: auto;
-  margin: 0 0 0.7rem;
+  margin: 0 0 0.8rem;
 }
 
-/* This code is the point of the section, so it takes the primary text colour rather
-   than the muted supporting one. */
 .contrast code {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.78rem;
-  line-height: 1.6;
-  color: var(--mobie-text);
+  font-family: var(--m-font-mono);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--m-text-2);
 }
 
 .contrast__note {
-  font-size: 0.85rem;
-  color: var(--mobie-muted);
+  font-size: 0.82rem;
+  color: var(--m-text-3);
+  line-height: 1.55;
   margin: 0;
 }
 
-/* Hero code is denser than the install steps; hold the columns apart a little more. */
-.contrast {
-  gap: 1.75rem;
-}
-
-/* CTA */
+/* ── Buttons ────────────────────────────────────────────────────────────── */
 .cta {
   display: flex;
-  gap: 0.7rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
 }
 
 .btn {
-  display: inline-block;
-  font-size: 0.9rem;
-  font-weight: 600;
-  padding: 0.62rem 1.15rem;
-  border-radius: 3px;
-  border: 1.5px solid var(--mobie-text);
-  color: var(--mobie-text);
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  padding: 0.6rem 1.15rem;
+  border-radius: var(--m-radius-sm);
+  border: 1px solid var(--m-border-strong);
+  background: var(--m-surface);
+  color: var(--m-text);
   text-decoration: none;
-  transition: opacity 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
 }
 
 .btn:hover {
-  opacity: 0.72;
+  border-color: var(--m-text-3);
+  background: var(--m-elevated);
 }
 
 .btn--primary {
-  background: var(--mobie-text);
-  color: var(--mobie-ground);
+  background: var(--m-accent);
+  border-color: transparent;
+  color: #fff;
 }
 
-/* Quickstart: the whole install, one line, directly under the CTA row. */
-.quickstart {
-  margin-top: 1.6rem;
-  max-width: 40rem;
+.btn--primary:hover {
+  background: var(--m-accent);
+  filter: brightness(1.12);
 }
 
-.quickstart__label {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--mobie-muted);
-  margin: 0 0 0.5rem;
-}
-
-/* Hover is the only affordance these carry otherwise; keyboard users need the ring.
-   Outlines follow border-radius, so the pill and card shapes stay intact.
-   (.copy carries its own ring inside CopyBlock, where its styles live.) */
-.btn:focus-visible,
-.tier__agents a:focus-visible,
-.inventory__grid a:focus-visible {
-  outline: 2px solid var(--mobie-accent);
-  outline-offset: 2px;
-}
-
-/* Tiers */
+/* ── Tiers ──────────────────────────────────────────────────────────────── */
 .tier-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 1px;
-  background: var(--mobie-rule);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 6px;
-  box-shadow: var(--mobie-shadow);
-  /* The rows paint to the corners, so they need clipping to sit inside the radius. */
-  overflow: hidden;
+  gap: 0.7rem;
 }
 
 .tier {
-  background: var(--mobie-surface);
-  padding: 1.4rem;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  background: var(--m-surface);
+  padding: 1.35rem 1.4rem;
   display: grid;
-  grid-template-columns: minmax(0, 18rem) 1fr;
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 17rem) 1fr;
+  gap: 1.75rem;
   align-items: start;
+  transition: border-color 0.15s ease;
+}
+
+.tier:hover {
+  border-color: var(--m-border-strong);
 }
 
 .tier__head {
   display: flex;
-  gap: 0.9rem;
+  gap: 0.85rem;
 }
 
 .tier__head p {
-  margin: 0.25rem 0 0;
-  font-size: 0.85rem;
-  color: var(--mobie-muted);
+  margin: 0.3rem 0 0;
+  font-size: 0.83rem;
+  color: var(--m-text-3);
   line-height: 1.5;
 }
 
 .tier__n {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.78rem;
-  color: var(--mobie-accent-text);
-  padding-top: 0.15rem;
+  font-family: var(--m-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--m-accent);
+  padding-top: 0.25rem;
 }
 
 .tier__agents {
@@ -480,149 +606,240 @@ const TOOLS = ['Claude Code', 'Codex', 'Cursor', 'Windsurf', 'Gemini CLI', 'Aide
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .tier__agents a {
   display: inline-block;
-  font-size: 0.82rem;
-  padding: 0.28rem 0.7rem;
-  background: var(--mobie-ground);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 99px;
-  color: var(--mobie-text);
+  font-size: 0.8rem;
+  font-weight: 400;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--m-border);
+  background: var(--m-bg);
+  border-radius: var(--m-radius-sm);
+  color: var(--m-text-2);
   text-decoration: none;
-  transition: border-color 0.15s ease, color 0.15s ease;
+  transition: color 0.12s ease, border-color 0.12s ease;
 }
 
 .tier__agents a:hover {
-  border-color: var(--mobie-accent);
-  color: var(--mobie-accent-text);
+  border-color: var(--m-accent-line);
+  color: var(--m-accent);
 }
 
-/* Install */
+/* ── Install ────────────────────────────────────────────────────────────── */
 .steps {
   list-style: none;
   padding: 0;
-  margin: 0 0 1.6rem;
+  margin: 0 0 1.8rem;
   display: grid;
-  gap: 1.6rem;
+  gap: 1.5rem;
 }
 
 .step__head {
   display: flex;
-  gap: 0.9rem;
+  gap: 0.85rem;
   align-items: baseline;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.7rem;
 }
 
 .step__n {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.78rem;
-  color: var(--mobie-accent-text);
+  font-family: var(--m-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--m-accent);
+}
+
+.step__code {
+  position: relative;
+}
+
+.step__code pre {
+  background: var(--m-surface);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  padding: 0.95rem 4.75rem 0.95rem 1rem;
+  overflow-x: auto;
+  margin: 0;
+}
+
+.step__code code {
+  font-family: var(--m-font-mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--m-text-2);
+  white-space: pre;
+}
+
+.copy {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  font-family: var(--m-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  background: var(--m-elevated);
+  color: var(--m-text-3);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-sm);
+  padding: 0.3rem 0.55rem;
+  cursor: pointer;
+  transition: color 0.12s ease, border-color 0.12s ease;
+}
+
+.copy:hover {
+  color: var(--m-accent);
+  border-color: var(--m-accent-line);
+}
+
+.copy[data-copied='true']::after {
+  content: ' ✓';
+  color: var(--m-positive);
+}
+
+.copy[data-copied='failed']::after {
+  content: ' ✗';
+  color: var(--m-negative);
 }
 
 .confirm {
-  font-size: 0.9rem;
-  color: var(--mobie-muted);
+  font-size: 0.88rem;
+  color: var(--m-text-3);
+  line-height: 1.7;
 }
 
 .confirm code {
-  font-family: var(--mobie-font-mono);
-  font-size: 0.82rem;
-  color: var(--mobie-accent-text);
-  border: 1px solid var(--mobie-accent);
-  border-radius: 99px;
-  padding: 0.12rem 0.6rem;
+  font-family: var(--m-font-mono);
+  font-size: 0.8rem;
+  color: var(--m-accent);
+  border: 1px solid var(--m-accent-line);
+  background: var(--m-accent-wash);
+  border-radius: var(--m-radius-sm);
+  padding: 0.15rem 0.5rem;
   white-space: nowrap;
 }
 
-/* Inventory */
-/* The separators used to be a --mobie-rule background showing through 1px gaps, which
-   painted every UNFILLED grid slot as a solid beige block — nine sections in a five-column
-   grid left one, and it read as a rendering fault. Drawing the rules on the cells instead
-   means an empty slot is simply paper. The section count comes from the toolkit at build
-   time, so this has to hold for any number of cells, not just today's nine. */
+/* ── Inventory ──────────────────────────────────────────────────────────── */
 .inventory__grid {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
-  background: var(--mobie-surface);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 6px;
-  box-shadow: var(--mobie-shadow);
-  /* Clips the trailing cell rules that would otherwise cross the container border. */
-  overflow: hidden;
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  gap: 0.7rem;
 }
 
 .inventory__grid a {
   display: block;
-  padding: 1.1rem;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  background: var(--m-surface);
+  padding: 1.2rem;
   height: 100%;
   text-decoration: none;
-  color: var(--mobie-text);
-  /* Right and bottom hairlines, drawn without taking layout space. */
-  box-shadow: 1px 0 0 var(--mobie-rule), 0 1px 0 var(--mobie-rule);
-  transition: background 0.15s ease;
+  color: var(--m-text);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .inventory__grid a:hover {
-  background: var(--vp-c-bg-alt);
+  border-color: var(--m-accent-line);
+  background: var(--m-elevated);
 }
 
 .inventory__count {
   display: block;
-  font-family: var(--mobie-font-display);
-  font-size: 2rem;
+  font-size: 1.9rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
   line-height: 1;
-  color: var(--mobie-accent);
+  color: var(--m-accent);
+  font-variant-numeric: tabular-nums;
 }
 
 .inventory__label {
   display: block;
-  font-weight: 600;
-  font-size: 0.92rem;
-  margin-top: 0.35rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: -0.012em;
+  margin-top: 0.5rem;
 }
 
 .inventory__blurb {
   display: block;
-  font-size: 0.8rem;
-  color: var(--mobie-muted);
-  margin-top: 0.15rem;
+  font-size: 0.79rem;
+  color: var(--m-text-3);
+  margin-top: 0.2rem;
   line-height: 1.45;
 }
 
-/* Tools */
+/* ── Tools ──────────────────────────────────────────────────────────────── */
 .tools__list {
   list-style: none;
   padding: 0;
-  margin: 0 0 1.6rem;
+  margin: 0 0 1.8rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
 .tools__list li {
-  font-size: 0.85rem;
-  padding: 0.35rem 0.85rem;
-  background: var(--mobie-surface);
-  border: 1px solid var(--mobie-rule);
-  border-radius: 3px;
-  color: var(--mobie-text);
-  box-shadow: var(--mobie-shadow);
+  font-family: var(--m-font-mono);
+  font-size: 0.78rem;
+  padding: 0.42rem 0.85rem;
+  border: 1px solid var(--m-border);
+  background: var(--m-surface);
+  border-radius: var(--m-radius-sm);
+  color: var(--m-text-2);
+}
+
+.tools .lede a {
+  color: var(--m-accent);
+  text-decoration: none;
+}
+
+.tools .lede a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 @media (max-width: 720px) {
+  .landing {
+    padding-top: 3rem;
+  }
+
   .contrast,
   .tier {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
-  .landing section {
-    margin-bottom: 3rem;
+  /* Diagram stacks; the connector becomes a vertical hairline with a down arrow. */
+  .route {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .route > li {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .route > li + li::before {
+    flex: 0 0 1.4rem;
+    width: 1px;
+    height: 1.4rem;
+    margin: 0 auto;
+  }
+
+  .route > li + li::after {
+    left: 50%;
+    top: calc(1.4rem - 5px);
+    transform: translateX(-50%) rotate(135deg);
+  }
+
+  .route__end {
+    text-align: center;
   }
 }
 </style>
