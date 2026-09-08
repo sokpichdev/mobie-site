@@ -503,4 +503,32 @@ describe('buildToolkitTree', () => {
       rmSync(localRoot, { recursive: true, force: true })
     }
   })
+
+  it('handles doubled/leading/trailing separators without crashing', () => {
+    // Slug with doubled separator: split yields empty strings that must be filtered
+    const pages: Page[] = [
+      { relPath: 'agents/expert.md', dir: 'agents', base: 'expert', isIndex: false },
+      { relPath: 'my--section/guide.md', dir: 'my--section', base: 'guide', isIndex: false }
+    ]
+    const rows = buildToolkitTree(pages)
+    const mySection = rows.find((r) => r.slug === 'my--section')!
+    // Split yields ['my', '', 'section'], filter removes empty, map+join produces 'My Section'
+    expect(mySection.label).toBe('My Section')
+  })
+
+  it('sorts extras alphabetically even when counts object has them unordered (mutation: protects .sort())', () => {
+    // Pass pages in deliberately non-alphabetical order: zebra before alpha.
+    // countInventory inserts in traversal order, so Object.keys(counts) is ['zebra', 'alpha'].
+    // Without .sort(), they'd appear as zebra, alpha; with it, they appear alpha, zebra.
+    // This direct-array test bypasses collectPages, which normalizes order.
+    const pages: Page[] = [
+      { relPath: 'agents/expert.md', dir: 'agents', base: 'expert', isIndex: false },
+      { relPath: 'zebra/guide.md', dir: 'zebra', base: 'guide', isIndex: false },
+      { relPath: 'alpha/note.md', dir: 'alpha', base: 'note', isIndex: false }
+    ]
+    const rows = buildToolkitTree(pages)
+    const slugs = rows.map((r) => r.slug)
+    // agents (from SECTION_ORDER) comes first, then extras sorted alphabetically
+    expect(slugs).toEqual(['agents', 'alpha', 'zebra'])
+  })
 })
