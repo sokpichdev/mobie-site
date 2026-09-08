@@ -51,8 +51,11 @@ Rejected alternatives:
 
 New tokens in `.vitepress/theme/palette.css`, declared once on `:root`.
 
-**Type ramp — four steps, no more.** Every heading on the landing page and in
-the docs resolves to one of these.
+**Type ramp — four heading steps, no more.** Every heading on the landing page
+and in the docs resolves to one of the first four; a fifth heading size is a
+design bug, not a new token. Below body sit three utility steps for text that is
+not a heading — captions, chips, annotations — so those do not have to round to
+`body` or `label`, both of which look wrong at that role.
 
 | Token | Role | Size |
 |---|---|---|
@@ -60,6 +63,9 @@ the docs resolves to one of these.
 | `--m-t-title` | h2, section heads | `clamp(1.75rem, 2.6vw, 2.25rem)` |
 | `--m-t-sub` | h3, card heads | `1.125rem` |
 | `--m-t-body` | prose, lists | `1rem` |
+| `--m-t-small` | card labels | `0.9rem` |
+| `--m-t-micro` | chips, stat line, blurbs | `0.78rem` |
+| `--m-t-fine` | annotations under code | `0.72rem` |
 | `--m-t-label` | mono uppercase labels | `11px` |
 
 **Spacing scale — one geometric series.** `--m-s-1` `0.5rem` through `--m-s-9`
