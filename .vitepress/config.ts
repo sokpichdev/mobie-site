@@ -187,6 +187,7 @@ export default withMermaid(defineConfig({
   // Everything else must resolve, so genuine link rot still fails the build.
   ignoreDeadLinks: [
     /\/LICENSE$/,              // non-markdown file in the toolkit root
+    /\/verify\.sh$/,           // non-markdown file in the toolkit root
     /\.swiftlint\.yml$/,       // config file
     /PULL_REQUEST_TEMPLATE/,   // lives under .github/, excluded
     /\/\.claude\//,            // dot-directory, excluded by rule and by VitePress
