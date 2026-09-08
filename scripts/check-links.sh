@@ -27,8 +27,8 @@ done
 # server itself is also an http:// URL, so a naive `--skip 'https?://'` skips the crawl
 # root too and silently checks nothing (0 links scanned). Also skip the handful of
 # non-page targets .vitepress/config.ts's own `ignoreDeadLinks` already accepts, for the
-# same reasons: LICENSE (non-markdown), .swiftlint.yml (config file), the PR template
+# same reasons: LICENSE and verify.sh (non-markdown), .swiftlint.yml (config file), the PR template
 # (lives under .github/, excluded), .claude/ (dot-directory, excluded), and the toolkit
 # README's local dashboard link.
 npx linkinator "$BASE" --recurse --silent \
-  --skip 'https?://(?!localhost)|/LICENSE$|\.swiftlint\.yml$|PULL_REQUEST_TEMPLATE|/\.claude/|localhost:4981'
+  --skip 'https?://(?!localhost)|/LICENSE$|/verify\.sh$|\.swiftlint\.yml$|PULL_REQUEST_TEMPLATE|/\.claude/|localhost:4981'
