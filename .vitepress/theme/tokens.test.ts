@@ -21,6 +21,20 @@ const SIZING_PROPS = ['margin', 'margin-top', 'margin-bottom', 'margin-left', 'm
   'padding', 'padding-top', 'padding-bottom', 'padding-left', 'padding-right',
   'gap', 'row-gap', 'column-gap', 'font-size']
 
+/**
+ * Extracts the body of a `<selector> { ... }` rule as the exact text between its
+ * braces. Assumes the rule has no nested braces (true of every block this file
+ * checks) — the first `}` after the opening brace is the rule's own close.
+ * `fromIndex` disambiguates repeated selectors (palette.css has two `:root` rules).
+ */
+function extractBlock(src: string, selector: string, fromIndex = 0): string {
+  const selectorIndex = src.indexOf(selector, fromIndex)
+  if (selectorIndex === -1) throw new Error(`selector not found: ${selector}`)
+  const braceOpen = src.indexOf('{', selectorIndex)
+  const braceClose = src.indexOf('}', braceOpen)
+  return src.slice(braceOpen + 1, braceClose).trim()
+}
+
 describe('palette.css token scales', () => {
   const palette = readFileSync(join(THEME, 'palette.css'), 'utf8')
 
@@ -41,6 +55,91 @@ describe('palette.css token scales', () => {
   it('does not alter the committed colour tokens', () => {
     expect(palette).toContain('--m-bg: #f7f5f0')
     expect(palette).toContain('--m-accent: #a3412b')
+  })
+
+  /**
+   * palette.css is edited by six later tasks. --m-bg / --m-accent above are a cheap
+   * sanity check, but they only spot-check two of the tokens declared under
+   * `html.dark`, and say nothing about the --vp-* chrome mapping. Both blocks are a
+   * closed set — VitePress's default theme (nav, sidebar, search, code blocks) reads
+   * every --vp-* token by name, and the dark palette is meant to invert the light one
+   * exactly — so nothing should add, remove, or change a declaration inside either
+   * one without a deliberate edit here.
+   *
+   * A task that deliberately changes a colour updates the matching EXPECTED_*
+   * constant below, in this one place, alongside the CSS change.
+   */
+  const EXPECTED_DARK_BLOCK = `
+  --m-bg: #151412;
+  --m-bg-alt: #1a1916;
+  --m-surface: #1c1b18;
+  --m-elevated: #242320;
+
+  --m-border: #2c2a25;
+  --m-border-strong: #3c3932;
+
+  --m-text: #ece8df;
+  --m-text-2: #a8a295;
+  --m-text-3: #736e63;
+
+  --m-accent: #d9704f;
+  --m-accent-hi: #e68a6c;
+  --m-accent-lo: #c25c3d;
+  --m-accent-wash: rgba(217, 112, 79, 0.11);
+  --m-accent-line: rgba(217, 112, 79, 0.34);
+
+  --m-positive: #5fbf7a;
+  --m-negative: #e5645a;
+`.trim()
+
+  const EXPECTED_VP_MAPPING_BLOCK = `
+  --vp-c-bg: var(--m-bg);
+  --vp-c-bg-alt: var(--m-bg-alt);
+  --vp-c-bg-soft: var(--m-surface);
+  --vp-c-bg-elv: var(--m-elevated);
+
+  --vp-c-text-1: var(--m-text);
+  --vp-c-text-2: var(--m-text-2);
+  --vp-c-text-3: var(--m-text-3);
+
+  --vp-c-divider: var(--m-border);
+  --vp-c-border: var(--m-border);
+  --vp-c-gutter: var(--m-border);
+
+  --vp-c-brand-1: var(--m-accent);
+  --vp-c-brand-2: var(--m-accent-hi);
+  --vp-c-brand-3: var(--m-accent-lo);
+  --vp-c-brand-soft: var(--m-accent-wash);
+
+  --vp-c-default-soft: var(--m-surface);
+  --vp-c-tip-1: var(--m-accent);
+  --vp-c-tip-soft: var(--m-accent-wash);
+
+  --vp-font-family-base: var(--m-font);
+  --vp-font-family-mono: var(--m-font-mono);
+
+  /* Code blocks share the surface colour so fences read as part of the page. */
+  --vp-code-block-bg: var(--m-surface);
+  --vp-code-block-divider-color: var(--m-border);
+  --vp-code-line-highlight-color: var(--m-accent-wash);
+
+  --vp-button-brand-bg: var(--m-accent);
+  --vp-button-brand-hover-bg: var(--m-accent-hi);
+  --vp-button-brand-border: transparent;
+  --vp-button-brand-text: #ffffff;
+
+  --vp-nav-height: 60px;
+  --vp-layout-max-width: 1500px;
+  --vp-sidebar-width: 268px;
+`.trim()
+
+  it('keeps the html.dark block byte-identical', () => {
+    expect(extractBlock(palette, 'html.dark {')).toBe(EXPECTED_DARK_BLOCK)
+  })
+
+  it('keeps the --vp-* chrome mapping block byte-identical', () => {
+    const mappingComment = palette.indexOf('VitePress token mapping')
+    expect(extractBlock(palette, ':root {', mappingComment)).toBe(EXPECTED_VP_MAPPING_BLOCK)
   })
 })
 
