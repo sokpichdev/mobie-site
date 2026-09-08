@@ -1883,3 +1883,216 @@ After Task 7, run the spec's full acceptance list once, end to end.
 
 - **The `SESSION` panel is authored, not recorded.** Replacing it with a real asciinema cast is a follow-up that touches only `hero-data.ts` and the session branch of `HeroFrame.vue`. It must not be described as captured output until it is.
 - **Vue components have no unit tests.** The "no new dependencies" constraint rules out `jsdom` and `@vue/test-utils`, so component behaviour is covered by build assertions on rendered HTML plus the manual checklist above. If that trade stops paying, adding a component-test harness is its own scoped change.
+
+---
+
+### Task 8: Readability and mobile type pass
+
+Added after the plan was written, at the user's request: "make sure the text is big and
+readable, and on mobile screen size as well."
+
+The site currently reads small. Documentation prose sits below the browser default, `h4`
+is *smaller* than the body text it heads, and the three smallest steps — which carry the
+eyebrows, stat line, tree counts and footer — bottom out at 11px with no mobile
+adjustment, so the smallest type lands on the smallest screens.
+
+**Files:**
+- Modify: `.vitepress/theme/palette.css` (the type ramp added in Task 1; add a mobile block)
+- Modify: `.vitepress/theme/theme.css` (the `Document typography` section, lines ~129-177)
+- Test: `.vitepress/theme/readability.test.ts` (create)
+
+**Interfaces:**
+- Consumes: the `--m-t-*` ramp (Task 1).
+- Produces: no new tokens. Values change; names do not, so every consumer inherits.
+
+- [ ] **Step 1: Write the failing test**
+
+Create `.vitepress/theme/readability.test.ts`. These are floors, not decorations: each
+one encodes a rule that was actually broken.
+
+```ts
+import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+const THEME = __dirname
+const palette = readFileSync(join(THEME, 'palette.css'), 'utf8')
+const theme = readFileSync(join(THEME, 'theme.css'), 'utf8')
+
+/** Resolve a token declared as a plain px/rem value to pixels (1rem = 16px). */
+function tokenPx(css: string, name: string): number {
+  const m = css.match(new RegExp(`${name}:\\s*([\\d.]+)(px|rem)`))
+  if (!m) throw new Error(`${name} is not a plain length`)
+  return m[2] === 'rem' ? parseFloat(m[1]) * 16 : parseFloat(m[1])
+}
+
+function rulePx(css: string, selector: string, prop: string): number {
+  const block = css.slice(css.indexOf(selector))
+  const m = block.slice(0, block.indexOf('}')).match(new RegExp(`${prop}:\\s*([\\d.]+)(px|rem)`))
+  if (!m) throw new Error(`${selector} has no plain ${prop}`)
+  return m[2] === 'rem' ? parseFloat(m[1]) * 16 : parseFloat(m[1])
+}
+
+describe('reading sizes', () => {
+  it('sets documentation prose at or above the 16px browser default', () => {
+    expect(rulePx(theme, '.vp-doc p,', 'font-size')).toBeGreaterThanOrEqual(16)
+  })
+
+  it('never makes a heading smaller than the prose it heads', () => {
+    const body = rulePx(theme, '.vp-doc p,', 'font-size')
+    expect(rulePx(theme, '.vp-doc h4', 'font-size')).toBeGreaterThan(body)
+    expect(rulePx(theme, '.vp-doc h3', 'font-size')).toBeGreaterThan(body)
+  })
+
+  it('keeps h3 visibly distinct from h4', () => {
+    expect(rulePx(theme, '.vp-doc h3', 'font-size'))
+      .toBeGreaterThan(rulePx(theme, '.vp-doc h4', 'font-size'))
+  })
+})
+
+describe('the small end of the ramp', () => {
+  it('keeps every utility step at a legible floor', () => {
+    // 12px is the practical floor for mono text on a phone; below that the
+    // letterforms stop resolving at arm's length.
+    for (const token of ['--m-t-fine', '--m-t-micro', '--m-t-small']) {
+      expect(tokenPx(palette, token)).toBeGreaterThanOrEqual(12)
+    }
+    expect(tokenPx(palette, '--m-t-label')).toBeGreaterThanOrEqual(12)
+  })
+
+  it('orders the utility steps consistently', () => {
+    expect(tokenPx(palette, '--m-t-small')).toBeGreaterThan(tokenPx(palette, '--m-t-micro'))
+    expect(tokenPx(palette, '--m-t-micro')).toBeGreaterThan(tokenPx(palette, '--m-t-fine'))
+  })
+})
+
+describe('mobile', () => {
+  it('grows the smallest steps on narrow screens instead of shrinking them', () => {
+    const mobile = palette.slice(palette.indexOf('@media (max-width: 768px)'))
+    expect(mobile).toContain('--m-t-label:')
+    expect(mobile).toContain('--m-t-fine:')
+  })
+
+  it('does not shrink body prose on narrow screens', () => {
+    expect(theme).not.toMatch(/@media[^{]*max-width[^{]*\{[^}]*\.vp-doc p[^}]*font-size:\s*1[0-5]px/)
+  })
+})
+```
+
+- [ ] **Step 2: Run the test to verify it fails**
+
+Run: `npx vitest run .vitepress/theme/readability.test.ts`
+Expected: FAIL on nearly every case — prose is `15.5px`, `h4` (`0.95rem`) is smaller than
+prose, `--m-t-label` is `11px`, and the mobile block declares no type tokens.
+
+- [ ] **Step 3: Raise the small end of the ramp in `palette.css`**
+
+Change these four values in the `:root` type ramp. Names and every other token stay as they are.
+
+```css
+  --m-t-small: 0.95rem;   /* was 0.9rem  — card labels */
+  --m-t-micro: 0.84rem;   /* was 0.78rem — chips, stat line, blurbs */
+  --m-t-fine: 0.78rem;    /* was 0.72rem — annotations under code */
+  --m-t-label: 12px;      /* was 11px    — mono uppercase labels */
+```
+
+- [ ] **Step 4: Add the mobile type block to `palette.css`**
+
+Extend the existing `@media (max-width: 768px)` block (added in Task 1 for `--m-s-section`)
+so the smallest steps grow rather than hold. Uppercase letter-spaced mono is the hardest
+thing on the page to read at a glance; on a phone it needs the extra pixel more than the
+desktop does, not less.
+
+```css
+@media (max-width: 768px) {
+  :root {
+    --m-s-section: var(--m-s-6);
+
+    /* The utility steps grow on small screens. Everything else is already fluid
+       via clamp(), which shrinks toward its floor — these do not, so they are
+       raised explicitly rather than left to bottom out at their desktop size. */
+    --m-t-label: 12.5px;
+    --m-t-fine: 0.82rem;
+    --m-t-micro: 0.88rem;
+  }
+}
+```
+
+- [ ] **Step 5: Fix documentation typography in `theme.css`**
+
+Replace the sizes in the `Document typography` section (lines ~149-177). The prose size is
+the single highest-leverage value on the site — every documentation page is read at it.
+
+```css
+.vp-doc h1 {
+  font-size: 2.6rem;
+  line-height: 1.12;
+  letter-spacing: -0.018em;
+  margin-bottom: 0.6rem;
+}
+
+.vp-doc h2 {
+  font-size: 1.65rem;
+  border-top: 1px solid var(--m-border);
+  padding-top: 2.1rem;
+  margin-top: 3.2rem;
+}
+
+/* h3 and h4 must both outrank the prose they head — h4 was previously 0.95rem,
+   smaller than the 15.5px body text, which read as a bolded paragraph rather
+   than a heading. */
+.vp-doc h3 {
+  font-size: 1.3rem;
+  margin-top: 2.2rem;
+}
+
+.vp-doc h4 {
+  font-size: 1.08rem;
+}
+
+.vp-doc p,
+.vp-doc li {
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--m-text-2);
+}
+```
+
+- [ ] **Step 6: Raise the mono reading sizes that are not tokenised**
+
+`HeroFrame.vue`'s panels set `font-size: 0.8rem` on `.frame__panel` with `0.75rem` code and
+`0.72rem` notes — the tree, the transcript and the contrast are all read at those sizes.
+Raise them to `0.86rem`, `0.8rem` and `var(--m-t-fine)` respectively, and let the frame's
+`min-height` grow to `28rem` so the taller text still fits without the panels reflowing.
+
+Do the same sweep for any remaining sub-`0.78rem` literal in `TierRoute.vue` and
+`theme.css`'s footer/search rules: nothing that a reader is expected to *read* (as opposed
+to glance at) should sit below `0.78rem`.
+
+- [ ] **Step 7: Run the tests**
+
+Run: `npx vitest run .vitepress/theme/readability.test.ts` → Expected: PASS.
+Run: `npm test` → Expected: PASS, all suites. In particular `tokens.test.ts` must still
+pass: every value you touched is either a token definition or lives outside `Landing.vue`.
+
+- [ ] **Step 8: Build and check the rendered result**
+
+Run: `npm run build` → Expected: `All build assertions passed.`
+
+Then verify in the built output that the sizes actually changed, since no assertion covers
+type scale:
+
+```bash
+grep -o 'font-size:17px' dist/assets/*.css | head -1
+grep -o '\-\-m-t-label:[^;]*' dist/assets/*.css | head -2
+```
+
+Expected: the prose rule at 17px, and two `--m-t-label` declarations (the `:root` value and
+the mobile override).
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add .vitepress/theme/palette.css .vitepress/theme/theme.css .vitepress/theme/HeroFrame.vue .vitepress/theme/TierRoute.vue .vitepress/theme/readability.test.ts
+git commit -m "fix(theme): raise reading sizes and grow the small steps on mobile"
+```
