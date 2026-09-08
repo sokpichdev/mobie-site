@@ -108,7 +108,13 @@ export function buildToolkitTree(pages: Page[]): TreeRow[] {
   const extras = Object.keys(counts)
     .filter((slug) => !known.has(slug))
     .sort()
-    .map((slug) => ({ slug, label: slug[0].toUpperCase() + slug.slice(1) }))
+    .map((slug) => ({
+      slug,
+      label: slug
+        .split(/[-_]/)
+        .map((word) => word[0].toUpperCase() + word.slice(1))
+        .join(' ')
+    }))
 
   return [...ordered, ...extras]
     .filter(({ slug }) => (counts[slug] ?? 0) > 0)

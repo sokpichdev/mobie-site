@@ -452,4 +452,55 @@ describe('buildToolkitTree', () => {
     expect(rows.some((r) => r.count === 0)).toBe(false)
     expect(rows.some((r) => r.slug === 'workflows')).toBe(false)
   })
+
+  it('appends unknown sections alphabetically after SECTION_ORDER, with proper label casing', () => {
+    // Create a local fixture with a mix of known and unknown sections
+    const localRoot = mkdtempSync(join(tmpdir(), 'toolkit-extras-'))
+    try {
+      // Helper to write files into this fixture
+      const localPut = (rel: string, body = '# Title\n') => {
+        const full = join(localRoot, rel)
+        mkdirSync(join(full, '..'), { recursive: true })
+        writeFileSync(full, body)
+      }
+
+      // Known section (in SECTION_ORDER)
+      localPut('agents/README.md')
+      localPut('agents/expert.md')
+
+      // Unknown sections (not in SECTION_ORDER) with various naming patterns
+      localPut('cli-tools/README.md')
+      localPut('cli-tools/command.md')
+      localPut('design_docs/README.md')
+      localPut('design_docs/guide.md')
+      localPut('zebra_notes/README.md')
+      localPut('zebra_notes/note.md')
+
+      const pages = collectPages(localRoot)
+      const rows = buildToolkitTree(pages)
+
+      // Verify structure: known sections come first in SECTION_ORDER order, unknown sections follow alphabetically
+      const slugs = rows.map((r) => r.slug)
+      expect(slugs).toEqual(['agents', 'cli-tools', 'design_docs', 'zebra_notes'])
+
+      // Verify proper label casing for hyphenated/underscored slugs
+      const cliTools = rows.find((r) => r.slug === 'cli-tools')!
+      expect(cliTools.label).toBe('Cli Tools')
+
+      const designDocs = rows.find((r) => r.slug === 'design_docs')!
+      expect(designDocs.label).toBe('Design Docs')
+
+      const zebraNotes = rows.find((r) => r.slug === 'zebra_notes')!
+      expect(zebraNotes.label).toBe('Zebra Notes')
+
+      // Verify links follow the /{slug}/ pattern
+      expect(cliTools.link).toBe('/cli-tools/')
+      expect(designDocs.link).toBe('/design_docs/')
+
+      // Verify all rows have non-zero counts
+      expect(rows.every((r) => r.count > 0)).toBe(true)
+    } finally {
+      rmSync(localRoot, { recursive: true, force: true })
+    }
+  })
 })
