@@ -140,6 +140,35 @@ check(
     : ''
 )
 
+// 9. No page in the built output reaches out to Google Fonts. Self-hosting is only
+//    real if nothing re-introduces the CDN — a stray <link> in a future head entry or
+//    an @import inside a component's <style> would silently undo it, and the browser
+//    would still render correctly, so nothing else would catch it.
+const htmlFiles: string[] = []
+function collectHtml(dir: string) {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry)
+    if (statSync(full).isDirectory()) collectHtml(full)
+    else if (entry.endsWith('.html') || entry.endsWith('.css')) htmlFiles.push(full)
+  }
+}
+collectHtml(DIST)
+const cdnLeaks = htmlFiles.filter((f) => {
+  const body = readFileSync(f, 'utf8')
+  return body.includes('fonts.googleapis.com') || body.includes('fonts.gstatic.com')
+})
+check(
+  `no Google Fonts requests in ${htmlFiles.length} built files`,
+  cdnLeaks.length === 0,
+  cdnLeaks.slice(0, 5).join(', ')
+)
+
+// 10. The vendored faces actually shipped. A missing file degrades silently to a
+//     system font, which looks "fine" and hides the regression.
+const fontDir = join(DIST, 'fonts')
+const shippedFonts = existsSync(fontDir) ? readdirSync(fontDir).filter((f) => f.endsWith('.woff2')) : []
+check(`vendored fonts in dist: ${shippedFonts.length}`, shippedFonts.length >= 10)
+
 console.log('')
 if (failures.length) {
   console.error(`${failures.length} assertion(s) failed.\n`)

@@ -91,13 +91,28 @@ export default withMermaid(defineConfig({
   appearance: true,
   srcDir: SRC,
   head: [
-    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
-    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    // Fonts are vendored under site/public/fonts and declared in palette.css, so the
+    // site makes no third-party request. Preload only the two faces that paint above
+    // the fold — the h1's serif and the lede's sans. Preloading more would compete
+    // with them for bandwidth and make first paint slower, not faster.
     [
       'link',
       {
-        rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;1,8..60,400;1,8..60,500&display=swap'
+        rel: 'preload',
+        as: 'font',
+        type: 'font/woff2',
+        href: '/fonts/source-serif-4-v14-latin-500.woff2',
+        crossorigin: ''
+      }
+    ],
+    [
+      'link',
+      {
+        rel: 'preload',
+        as: 'font',
+        type: 'font/woff2',
+        href: '/fonts/ibm-plex-sans-v23-latin-regular.woff2',
+        crossorigin: ''
       }
     ],
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }],
