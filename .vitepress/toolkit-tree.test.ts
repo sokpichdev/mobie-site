@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import {
   collectPages,
   countInventory,
+  buildToolkitTree,
   buildRewrites,
   buildSidebar,
   readTitle,
@@ -422,5 +423,33 @@ describe('headingSlug', () => {
     )
     expect(headingSlug('Contributing — everyone is welcome')).toBe('contributing--everyone-is-welcome')
     expect(headingSlug('How It Works')).toBe('how-it-works')
+  })
+})
+
+describe('buildToolkitTree', () => {
+  it('returns one row per non-empty section, in SECTION_ORDER', () => {
+    const rows = buildToolkitTree(collectPages(root))
+    expect(rows.map((r) => r.slug)).toEqual(['agents', 'skills', 'templates', 'examples'])
+  })
+
+  it('carries the display label and the section index link', () => {
+    const rows = buildToolkitTree(collectPages(root))
+    const agents = rows.find((r) => r.slug === 'agents')!
+    expect(agents.label).toBe('Agents')
+    expect(agents.link).toBe('/agents/')
+  })
+
+  it('uses the same counts as countInventory', () => {
+    const pages = collectPages(root)
+    const counts = countInventory(pages)
+    for (const row of buildToolkitTree(pages)) {
+      expect(row.count).toBe(counts[row.slug])
+    }
+  })
+
+  it('omits sections with no content', () => {
+    const rows = buildToolkitTree(collectPages(root))
+    expect(rows.some((r) => r.count === 0)).toBe(false)
+    expect(rows.some((r) => r.slug === 'workflows')).toBe(false)
   })
 })

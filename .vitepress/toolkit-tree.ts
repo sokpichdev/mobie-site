@@ -87,6 +87,34 @@ export const SECTION_ORDER: Array<[string, string]> = [
   ['examples', 'Examples']
 ]
 
+/** One row of the hero's directory-tree panel. */
+export type TreeRow = { slug: string; label: string; count: number; link: string }
+
+/**
+ * The toolkit's top-level shape, as the landing page's TREE panel renders it: the real
+ * directories, their real document counts, in the site's reading order.
+ *
+ * Sections with no content are dropped rather than rendered as zero — a tree that shows
+ * empty branches reads as a broken build, and the counts are the panel's whole point.
+ * Anything present in the toolkit but missing from SECTION_ORDER is appended
+ * alphabetically, so a new upstream section appears on the landing page without a code
+ * change here.
+ */
+export function buildToolkitTree(pages: Page[]): TreeRow[] {
+  const counts = countInventory(pages)
+  const ordered = SECTION_ORDER.map(([slug, label]) => ({ slug, label }))
+  const known = new Set(ordered.map((s) => s.slug))
+
+  const extras = Object.keys(counts)
+    .filter((slug) => !known.has(slug))
+    .sort()
+    .map((slug) => ({ slug, label: slug[0].toUpperCase() + slug.slice(1) }))
+
+  return [...ordered, ...extras]
+    .filter(({ slug }) => (counts[slug] ?? 0) > 0)
+    .map(({ slug, label }) => ({ slug, label, count: counts[slug], link: `/${slug}/` }))
+}
+
 export type SidebarItem = { text: string; link?: string; items?: SidebarItem[]; collapsed?: boolean }
 
 /** First H1 of a markdown file, with any YAML front-matter block skipped. */

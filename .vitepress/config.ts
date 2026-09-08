@@ -7,6 +7,7 @@ import {
   buildRewrites,
   buildSidebar,
   countInventory,
+  buildToolkitTree,
   fixRootReadmeLinks,
   extractIntroduction
 } from './toolkit-tree'
@@ -232,6 +233,10 @@ export default withMermaid(defineConfig({
   ],
   themeConfig: {
     inventory: countInventory(pages),
+    // The hero's TREE panel renders the real toolkit shape. Computed here, at build
+    // time, from the same fetched clone the docs are generated from — so the landing
+    // page cannot claim a section or a count the site does not actually contain.
+    tree: buildToolkitTree(pages),
     nav: [
       { text: 'Introduction', link: '/introduction' },
       {
