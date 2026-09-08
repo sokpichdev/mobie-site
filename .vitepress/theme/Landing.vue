@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useData } from 'vitepress'
+import { statLine } from './hero-data'
+import type { TreeRow } from '../toolkit-tree'
 
 const { theme } = useData()
 
 const REPO = 'https://github.com/sokpichdev/mobile-engineering-agents'
 
 const inventory = computed<Record<string, number>>(() => theme.value.inventory ?? {})
+
+const tree = computed<TreeRow[]>(() => theme.value.tree ?? [])
+const stats = computed(() => statLine(tree.value))
 
 const INVENTORY_ROWS: Array<{ slug: string; label: string; blurb: string }> = [
   { slug: 'agents', label: 'Agents', blurb: 'Loadable expert roles' },
@@ -68,9 +73,6 @@ const TIERS = [
   }
 ]
 
-/** The hero diagram: a request enters, hands down the four tiers, and leaves merge-ready. */
-const ROUTE = TIERS.map((t) => ({ n: t.n, name: t.name, count: t.agents.length }))
-
 const INSTALL_STEPS = [
   {
     n: '01',
@@ -108,62 +110,27 @@ async function copy(text: string, event: MouseEvent) {
   <div class="landing">
     <!-- ── Hero ─────────────────────────────────────────── -->
     <section class="hero">
-      <p class="eyebrow">01 — The problem</p>
-      <h1>
-        Turn your AI coding agent into a
-        <em>Senior mobile engineer</em>
-      </h1>
-      <p class="lede">
-        Architecture, security, testing and standards — so the code your agent generates is
-        production-grade, not just plausible.
-      </p>
+      <div class="hero__copy">
+        <p class="eyebrow">01 — The problem</p>
+        <h1>
+          Turn your AI coding agent into a
+          <em>Senior mobile engineer</em>
+        </h1>
+        <p class="lede">
+          Architecture, security, testing and standards — so the code your agent generates is
+          production-grade, not just plausible.
+        </p>
 
-      <!-- Routing diagram: the one visual this toolkit has that nothing else does. -->
-      <ol class="route" aria-label="How a request flows through the agent tiers">
-        <li class="route__end">
-          <span class="route__name">Your request</span>
-        </li>
-        <li v-for="tier in ROUTE" :key="tier.n" class="route__tier">
-          <a href="#tiers">
-            <span class="route__n">{{ tier.n }}</span>
-            <span class="route__name">{{ tier.name }}</span>
-            <span class="route__count">{{ tier.count }} agents</span>
-          </a>
-        </li>
-        <li class="route__end route__end--done">
-          <span class="route__name">Merge-ready</span>
-        </li>
-      </ol>
+        <div class="cta">
+          <a class="btn btn--primary" href="#install">Get started</a>
+          <a class="btn" href="/introduction">Read the docs</a>
+        </div>
 
-      <div class="contrast">
-        <div class="contrast__col contrast__col--bad">
-          <p class="contrast__label">Without the toolkit</p>
-          <pre><code>class LoginVC: UIViewController {
-  UserDefaults.standard.set(
-    token, forKey: "token")
-  // 400 more lines
-}</code></pre>
-          <p class="contrast__note">
-            Massive View Controller · token in plaintext · no tests
-          </p>
-        </div>
-        <div class="contrast__col contrast__col--good">
-          <p class="contrast__label">With the toolkit</p>
-          <pre><code>final class LoginViewModel {
-  let auth: AuthUseCase
-  func submit() async throws {
-    try await auth.login()
-  }
-}</code></pre>
-          <p class="contrast__note">
-            OAuth2 + PKCE · Keychain · MVVM · typed errors · tests
-          </p>
-        </div>
+        <p v-if="stats" class="hero__stats">{{ stats }}</p>
       </div>
 
-      <div class="cta">
-        <a class="btn btn--primary" href="#install">Get started</a>
-        <a class="btn" href="/introduction">Read the docs</a>
+      <div class="hero__frame">
+        <HeroFrame :tree="tree" />
       </div>
     </section>
 
@@ -333,7 +300,6 @@ async function copy(text: string, event: MouseEvent) {
 /* Grid and flex children default to min-width:auto and refuse to shrink below their
    content's intrinsic width — so a long line inside a <pre> widens its track instead of
    scrolling within it. min-width:0 lets the track shrink and hands overflow to the <pre>. */
-.contrast__col,
 .step,
 .step__code,
 .tier__agents,
@@ -343,7 +309,26 @@ async function copy(text: string, event: MouseEvent) {
 
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 .hero {
-  padding-top: var(--m-s-5);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--m-s-6);
+  align-items: start;
+}
+
+.hero__stats {
+  font-family: var(--m-font-mono);
+  font-size: var(--m-t-micro);
+  color: var(--m-text-3);
+  border-top: 1px solid var(--m-border);
+  padding-top: var(--m-s-3);
+  margin: var(--m-s-5) 0 0;
+}
+
+@media (max-width: 1024px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--m-s-5);
+  }
 }
 
 /* ── Routing diagram ────────────────────────────────────────────────────────
@@ -450,70 +435,6 @@ async function copy(text: string, event: MouseEvent) {
 
 .route__end--done .route__name {
   color: var(--m-positive);
-}
-
-.contrast {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--m-s-3);
-  margin: var(--m-s-6) 0 var(--m-s-5);
-}
-
-.contrast__col {
-  border: 1px solid var(--m-border);
-  border-radius: var(--m-radius);
-  background: var(--m-surface);
-  padding: var(--m-s-3);
-}
-
-/* The verdict colour lives on a single top hairline — the card itself stays neutral,
-   so red and green never fight the accent for attention. */
-.contrast__col--bad {
-  box-shadow: inset 0 2px 0 0 var(--m-negative);
-}
-
-.contrast__col--good {
-  box-shadow: inset 0 2px 0 0 var(--m-positive);
-}
-
-.contrast__label {
-  font-family: var(--m-font-mono);
-  font-size: var(--m-t-label);
-  font-weight: 500;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  margin: 0 0 var(--m-s-2);
-}
-
-.contrast__col--bad .contrast__label {
-  color: var(--m-negative);
-}
-
-.contrast__col--good .contrast__label {
-  color: var(--m-positive);
-}
-
-.contrast pre {
-  background: var(--m-bg);
-  border: 1px solid var(--m-border);
-  border-radius: var(--m-radius-sm);
-  padding: var(--m-s-2);
-  overflow-x: auto;
-  margin: 0 0 var(--m-s-2);
-}
-
-.contrast code {
-  font-family: var(--m-font-mono);
-  font-size: var(--m-t-micro);
-  line-height: 1.65;
-  color: var(--m-text-2);
-}
-
-.contrast__note {
-  font-size: var(--m-t-micro);
-  color: var(--m-text-3);
-  line-height: 1.55;
-  margin: 0;
 }
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
@@ -808,7 +729,6 @@ async function copy(text: string, event: MouseEvent) {
     padding-top: var(--m-s-6);
   }
 
-  .contrast,
   .tier {
     grid-template-columns: 1fr;
     gap: var(--m-s-3);

@@ -5,6 +5,7 @@ import PlatformBadge from './PlatformBadge.vue'
 import Landing from './Landing.vue'
 import NotFound from './NotFound.vue'
 import ToolTabs from './ToolTabs.vue'
+import HeroFrame from './HeroFrame.vue'
 import './palette.css'
 import './theme.css'
 
@@ -20,5 +21,6 @@ export default {
     app.component('PlatformBadge', PlatformBadge)
     app.component('Landing', Landing)
     app.component('ToolTabs', ToolTabs)
+    app.component('HeroFrame', HeroFrame)
   }
 } satisfies Theme

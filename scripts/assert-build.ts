@@ -1,7 +1,7 @@
 // Post-build assertions: does dist/ faithfully represent the fetched toolkit?
 import { readdirSync, statSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { collectPages, countInventory } from '../.vitepress/toolkit-tree'
+import { collectPages, countInventory, buildToolkitTree } from '../.vitepress/toolkit-tree'
 import { needsVPre } from '../.vitepress/vpre'
 
 const SRC = '.content/toolkit'
@@ -168,6 +168,29 @@ check(
 const fontDir = join(DIST, 'fonts')
 const shippedFonts = existsSync(fontDir) ? readdirSync(fontDir).filter((f) => f.endsWith('.woff2')) : []
 check(`vendored fonts in dist: ${shippedFonts.length}`, shippedFonts.length >= 10)
+
+// 11. The hero's three proof panels reached the built HTML. They render server-side
+//     (v-show, not v-if) precisely so a reader without JavaScript still sees all three —
+//     asserting on the markup is therefore also the no-JS regression test.
+const heroChecks: Array<[string, string]> = [
+  ['tree panel', 'tree__root'],
+  ['session panel', 'Mobile Engineering Agents — loaded ✓'],
+  ['before/after panel', 'contrast__note'],
+  ['stat line', 'hero__stats']
+]
+for (const [label, needle] of heroChecks) {
+  check(`hero ${label} rendered`, index.includes(needle))
+}
+
+// 12. The tree panel's counts match the derived counts, in order — the same guarantee
+//     assertion 5 gives the inventory grid. A tree that drifts from the real toolkit is
+//     worse than no tree, because it is proof that lies.
+const treeRendered = [...index.matchAll(/tree__count[^>]*>(\d+)/g)].map((m) => Number(m[1]))
+const treeExpected = buildToolkitTree(pages).map((r) => r.count)
+check(
+  `hero tree counts match derived: [${treeRendered}] vs [${treeExpected}]`,
+  JSON.stringify(treeRendered) === JSON.stringify(treeExpected)
+)
 
 console.log('')
 if (failures.length) {
