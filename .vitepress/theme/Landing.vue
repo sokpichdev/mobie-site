@@ -257,12 +257,12 @@ async function copy(text: string, event: MouseEvent) {
 .landing {
   max-width: 68rem;
   margin: 0 auto;
-  padding: 4.5rem 1.5rem 8rem;
+  padding: var(--m-s-6) var(--m-s-4) var(--m-s-8);
   color: var(--m-text);
 }
 
 .landing section {
-  margin-bottom: 7rem;
+  margin-bottom: var(--m-s-section);
   position: relative;
 }
 
@@ -270,14 +270,14 @@ async function copy(text: string, event: MouseEvent) {
 .eyebrow {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--m-s-2);
   font-family: var(--m-font-mono);
-  font-size: 11px;
+  font-size: var(--m-t-label);
   font-weight: 500;
   letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--m-accent);
-  margin: 0 0 1.4rem;
+  margin: 0 0 var(--m-s-4);
 }
 
 /* A rule runs out from every section label — the page reads as numbered chapters. */
@@ -290,11 +290,11 @@ async function copy(text: string, event: MouseEvent) {
 
 .landing h1 {
   font-family: var(--m-font-serif);
-  font-size: clamp(2.5rem, 6vw, 4.1rem);
+  font-size: var(--m-t-display);
   font-weight: 500;
   line-height: 1.06;
   letter-spacing: -0.02em;
-  margin: 0 0 1.1rem;
+  margin: 0 0 var(--m-s-3);
   max-width: 20ch;
 }
 
@@ -307,16 +307,16 @@ async function copy(text: string, event: MouseEvent) {
 
 .landing h2 {
   font-family: var(--m-font-serif);
-  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  font-size: var(--m-t-title);
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: -0.015em;
-  margin: 0 0 0.85rem;
+  margin: 0 0 var(--m-s-2);
   max-width: 24ch;
 }
 
 .landing h3 {
-  font-size: 0.97rem;
+  font-size: var(--m-t-sub);
   font-weight: 600;
   letter-spacing: -0.012em;
   margin: 0;
@@ -324,10 +324,10 @@ async function copy(text: string, event: MouseEvent) {
 
 .lede {
   color: var(--m-text-2);
-  font-size: 1.02rem;
+  font-size: var(--m-t-body);
   line-height: 1.68;
   max-width: 44rem;
-  margin: 0 0 2.4rem;
+  margin: 0 0 var(--m-s-5);
 }
 
 /* Grid and flex children default to min-width:auto and refuse to shrink below their
@@ -343,7 +343,7 @@ async function copy(text: string, event: MouseEvent) {
 
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 .hero {
-  padding-top: 2rem;
+  padding-top: var(--m-s-5);
 }
 
 /* ── Routing diagram ────────────────────────────────────────────────────────
@@ -353,7 +353,7 @@ async function copy(text: string, event: MouseEvent) {
 .route {
   list-style: none;
   padding: 0;
-  margin: 0 0 2.6rem;
+  margin: 0 0 var(--m-s-5);
   display: flex;
   align-items: stretch;
   gap: 0;
@@ -397,8 +397,8 @@ async function copy(text: string, event: MouseEvent) {
 .route__tier a {
   flex: 1;
   display: grid;
-  gap: 0.15rem;
-  padding: 0.8rem 0.9rem;
+  gap: var(--m-s-1);
+  padding: var(--m-s-2) var(--m-s-3);
   border: 1px solid var(--m-border-strong);
   border-radius: var(--m-radius);
   background: var(--m-surface);
@@ -414,14 +414,14 @@ async function copy(text: string, event: MouseEvent) {
 
 .route__n {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: var(--m-t-label);
   letter-spacing: 0.08em;
   color: var(--m-accent);
 }
 
 .route__name {
   font-weight: 600;
-  font-size: 0.86rem;
+  font-size: var(--m-t-small);
   letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
@@ -430,7 +430,7 @@ async function copy(text: string, event: MouseEvent) {
 
 .route__count {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: var(--m-t-label);
   color: var(--m-text-3);
   white-space: nowrap;
 }
@@ -442,7 +442,7 @@ async function copy(text: string, event: MouseEvent) {
 .route__end .route__name {
   font-family: var(--m-font-mono);
   font-weight: 500;
-  font-size: 11px;
+  font-size: var(--m-t-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--m-text-3);
@@ -455,15 +455,15 @@ async function copy(text: string, event: MouseEvent) {
 .contrast {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin: 3rem 0 2.4rem;
+  gap: var(--m-s-3);
+  margin: var(--m-s-6) 0 var(--m-s-5);
 }
 
 .contrast__col {
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
   background: var(--m-surface);
-  padding: 1.1rem;
+  padding: var(--m-s-3);
 }
 
 /* The verdict colour lives on a single top hairline — the card itself stays neutral,
@@ -478,11 +478,11 @@ async function copy(text: string, event: MouseEvent) {
 
 .contrast__label {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: var(--m-t-label);
   font-weight: 500;
   letter-spacing: 0.11em;
   text-transform: uppercase;
-  margin: 0 0 0.85rem;
+  margin: 0 0 var(--m-s-2);
 }
 
 .contrast__col--bad .contrast__label {
@@ -497,20 +497,20 @@ async function copy(text: string, event: MouseEvent) {
   background: var(--m-bg);
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius-sm);
-  padding: 0.85rem;
+  padding: var(--m-s-2);
   overflow-x: auto;
-  margin: 0 0 0.8rem;
+  margin: 0 0 var(--m-s-2);
 }
 
 .contrast code {
   font-family: var(--m-font-mono);
-  font-size: 12px;
+  font-size: var(--m-t-micro);
   line-height: 1.65;
   color: var(--m-text-2);
 }
 
 .contrast__note {
-  font-size: 0.82rem;
+  font-size: var(--m-t-micro);
   color: var(--m-text-3);
   line-height: 1.55;
   margin: 0;
@@ -519,17 +519,17 @@ async function copy(text: string, event: MouseEvent) {
 /* ── Buttons ────────────────────────────────────────────────────────────── */
 .cta {
   display: flex;
-  gap: 0.6rem;
+  gap: var(--m-s-1);
   flex-wrap: wrap;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
-  font-size: 0.875rem;
+  font-size: var(--m-t-small);
   font-weight: 500;
   letter-spacing: -0.01em;
-  padding: 0.6rem 1.15rem;
+  padding: var(--m-s-1) var(--m-s-3);
   border-radius: var(--m-radius-sm);
   border: 1px solid var(--m-border-strong);
   background: var(--m-surface);
@@ -560,17 +560,17 @@ async function copy(text: string, event: MouseEvent) {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 0.7rem;
+  gap: var(--m-s-2);
 }
 
 .tier {
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
   background: var(--m-surface);
-  padding: 1.35rem 1.4rem;
+  padding: var(--m-s-4) var(--m-s-4);
   display: grid;
   grid-template-columns: minmax(0, 17rem) 1fr;
-  gap: 1.75rem;
+  gap: var(--m-s-5);
   align-items: start;
   transition: border-color 0.15s ease;
 }
@@ -581,23 +581,23 @@ async function copy(text: string, event: MouseEvent) {
 
 .tier__head {
   display: flex;
-  gap: 0.85rem;
+  gap: var(--m-s-2);
 }
 
 .tier__head p {
-  margin: 0.3rem 0 0;
-  font-size: 0.83rem;
+  margin: var(--m-s-1) 0 0;
+  font-size: var(--m-t-micro);
   color: var(--m-text-3);
   line-height: 1.5;
 }
 
 .tier__n {
   font-family: var(--m-font-mono);
-  font-size: 11px;
+  font-size: var(--m-t-label);
   font-weight: 500;
   letter-spacing: 0.06em;
   color: var(--m-accent);
-  padding-top: 0.25rem;
+  padding-top: var(--m-s-1);
 }
 
 .tier__agents {
@@ -606,14 +606,14 @@ async function copy(text: string, event: MouseEvent) {
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--m-s-1);
 }
 
 .tier__agents a {
   display: inline-block;
-  font-size: 0.8rem;
+  font-size: var(--m-t-micro);
   font-weight: 400;
-  padding: 0.3rem 0.7rem;
+  padding: var(--m-s-1) var(--m-s-2);
   border: 1px solid var(--m-border);
   background: var(--m-bg);
   border-radius: var(--m-radius-sm);
@@ -631,21 +631,21 @@ async function copy(text: string, event: MouseEvent) {
 .steps {
   list-style: none;
   padding: 0;
-  margin: 0 0 1.8rem;
+  margin: 0 0 var(--m-s-4);
   display: grid;
-  gap: 1.5rem;
+  gap: var(--m-s-4);
 }
 
 .step__head {
   display: flex;
-  gap: 0.85rem;
+  gap: var(--m-s-2);
   align-items: baseline;
-  margin-bottom: 0.7rem;
+  margin-bottom: var(--m-s-2);
 }
 
 .step__n {
   font-family: var(--m-font-mono);
-  font-size: 11px;
+  font-size: var(--m-t-label);
   font-weight: 500;
   color: var(--m-accent);
 }
@@ -658,14 +658,14 @@ async function copy(text: string, event: MouseEvent) {
   background: var(--m-surface);
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
-  padding: 0.95rem 4.75rem 0.95rem 1rem;
+  padding: var(--m-s-3) var(--m-s-6) var(--m-s-3) var(--m-s-3);
   overflow-x: auto;
   margin: 0;
 }
 
 .step__code code {
   font-family: var(--m-font-mono);
-  font-size: 12.5px;
+  font-size: var(--m-t-micro);
   line-height: 1.7;
   color: var(--m-text-2);
   white-space: pre;
@@ -676,14 +676,14 @@ async function copy(text: string, event: MouseEvent) {
   top: 0.6rem;
   right: 0.6rem;
   font-family: var(--m-font-mono);
-  font-size: 10px;
+  font-size: var(--m-t-label);
   letter-spacing: 0.09em;
   text-transform: uppercase;
   background: var(--m-elevated);
   color: var(--m-text-3);
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius-sm);
-  padding: 0.3rem 0.55rem;
+  padding: var(--m-s-1) var(--m-s-1);
   cursor: pointer;
   transition: color 0.12s ease, border-color 0.12s ease;
 }
@@ -704,19 +704,19 @@ async function copy(text: string, event: MouseEvent) {
 }
 
 .confirm {
-  font-size: 0.88rem;
+  font-size: var(--m-t-small);
   color: var(--m-text-3);
   line-height: 1.7;
 }
 
 .confirm code {
   font-family: var(--m-font-mono);
-  font-size: 0.8rem;
+  font-size: var(--m-t-micro);
   color: var(--m-accent);
   border: 1px solid var(--m-accent-line);
   background: var(--m-accent-wash);
   border-radius: var(--m-radius-sm);
-  padding: 0.15rem 0.5rem;
+  padding: var(--m-s-1) var(--m-s-1);
   white-space: nowrap;
 }
 
@@ -727,7 +727,7 @@ async function copy(text: string, event: MouseEvent) {
   margin: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
-  gap: 0.7rem;
+  gap: var(--m-s-2);
 }
 
 .inventory__grid a {
@@ -735,7 +735,7 @@ async function copy(text: string, event: MouseEvent) {
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
   background: var(--m-surface);
-  padding: 1.2rem;
+  padding: var(--m-s-3);
   height: 100%;
   text-decoration: none;
   color: var(--m-text);
@@ -749,7 +749,7 @@ async function copy(text: string, event: MouseEvent) {
 
 .inventory__count {
   display: block;
-  font-size: 1.9rem;
+  font-size: var(--m-t-title);
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -760,16 +760,16 @@ async function copy(text: string, event: MouseEvent) {
 .inventory__label {
   display: block;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: var(--m-t-small);
   letter-spacing: -0.012em;
-  margin-top: 0.5rem;
+  margin-top: var(--m-s-1);
 }
 
 .inventory__blurb {
   display: block;
-  font-size: 0.79rem;
+  font-size: var(--m-t-micro);
   color: var(--m-text-3);
-  margin-top: 0.2rem;
+  margin-top: var(--m-s-1);
   line-height: 1.45;
 }
 
@@ -777,16 +777,16 @@ async function copy(text: string, event: MouseEvent) {
 .tools__list {
   list-style: none;
   padding: 0;
-  margin: 0 0 1.8rem;
+  margin: 0 0 var(--m-s-4);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--m-s-1);
 }
 
 .tools__list li {
   font-family: var(--m-font-mono);
-  font-size: 0.78rem;
-  padding: 0.42rem 0.85rem;
+  font-size: var(--m-t-micro);
+  padding: var(--m-s-1) var(--m-s-2);
   border: 1px solid var(--m-border);
   background: var(--m-surface);
   border-radius: var(--m-radius-sm);
@@ -805,13 +805,13 @@ async function copy(text: string, event: MouseEvent) {
 
 @media (max-width: 720px) {
   .landing {
-    padding-top: 3rem;
+    padding-top: var(--m-s-6);
   }
 
   .contrast,
   .tier {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: var(--m-s-3);
   }
 
   /* Diagram stacks; the connector becomes a vertical hairline with a down arrow. */

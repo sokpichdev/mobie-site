@@ -44,6 +44,49 @@
 
   --m-radius: 6px;
   --m-radius-sm: 4px;
+
+  /* ── Type ramp ────────────────────────────────────────────────────────────
+     Four heading steps — display / title / sub — plus body, and three utility
+     steps below it. Every heading on the site resolves to one of the first four;
+     a fifth heading size is a design bug, not a new token.
+
+     (Refinement to spec §1: the spec lists the four heading steps and the label
+     step. Converting Landing.vue revealed three legitimate sub-body sizes already
+     in use — .inventory__label 0.9rem, .tools__list 0.78rem, .contrast__note
+     0.72rem — that are not headings and would otherwise have had to round to
+     `body` or `label`, both of which would look wrong. They are tokenised here
+     rather than left as literals.) */
+  --m-t-display: clamp(2.75rem, 5.5vw, 4rem);
+  --m-t-title: clamp(1.75rem, 2.6vw, 2.25rem);
+  --m-t-sub: 1.125rem;
+  --m-t-body: 1rem;
+  --m-t-small: 0.9rem;
+  --m-t-micro: 0.78rem;
+  --m-t-fine: 0.72rem;
+  --m-t-label: 11px;
+
+  /* ── Spacing scale ────────────────────────────────────────────────────────
+     One geometric series. No layout rule may introduce a length outside it —
+     .vitepress/theme/tokens.test.ts enforces this for Landing.vue. */
+  --m-s-1: 0.5rem;
+  --m-s-2: 0.75rem;
+  --m-s-3: 1rem;
+  --m-s-4: 1.5rem;
+  --m-s-5: 2rem;
+  --m-s-6: 4rem;
+  --m-s-7: 6rem;
+  --m-s-8: 8rem;
+  --m-s-9: 12rem;
+
+  /* The rhythm between numbered chapters. One token so the whole page breathes
+     together and collapses together on small screens. */
+  --m-s-section: var(--m-s-8);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --m-s-section: var(--m-s-6);
+  }
 }
 
 html.dark {
