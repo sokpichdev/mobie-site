@@ -673,17 +673,22 @@ Expected output from the final command — the real numbers, which are the ones 
 
 ```
 [
-  { slug: 'agents',       label: 'Agents',       count: 18, link: '/agents/' },
-  { slug: 'skills',       label: 'Skills',       count: 80, link: '/skills/' },
-  { slug: 'workflows',    label: 'Workflows',    count: 14, link: '/workflows/' },
-  { slug: 'checklists',   label: 'Checklists',   count: 11, link: '/checklists/' },
-  { slug: 'standards',    label: 'Standards',    count: 11, link: '/standards/' },
-  { slug: 'architecture', label: 'Architecture', count: 7,  link: '/architecture/' },
-  { slug: 'prompts',      label: 'Prompts',      count: 11, link: '/prompts/' },
-  { slug: 'templates',    label: 'Templates',    count: 15, link: '/templates/' },
-  { slug: 'examples',     label: 'Examples',     count: 6,  link: '/examples/' }
+  { slug: 'agents',       label: 'Agents',       count: 17, link: '/agents/' },
+  { slug: 'skills',       label: 'Skills',       count: 54, link: '/skills/' },
+  { slug: 'workflows',    label: 'Workflows',    count: 13, link: '/workflows/' },
+  { slug: 'checklists',   label: 'Checklists',   count: 10, link: '/checklists/' },
+  { slug: 'standards',    label: 'Standards',    count: 10, link: '/standards/' },
+  { slug: 'architecture', label: 'Architecture', count: 6,  link: '/architecture/' },
+  { slug: 'prompts',      label: 'Prompts',      count: 10, link: '/prompts/' },
+  { slug: 'templates',    label: 'Templates',    count: 12, link: '/templates/' },
+  { slug: 'examples',     label: 'Examples',     count: 5,  link: '/examples/' }
 ]
 ```
+
+These are `countInventory`'s derived counts, which are **not** raw file counts: README
+and generated `index.md` scaffolding is excluded, and `templates`/`examples` count leaf
+*directories* rather than files. They match the `landing counts match derived` line in a
+clean `npm run build`.
 
 Counts may differ if the upstream toolkit has changed — that is expected and correct. What must hold is nine rows, all non-zero, in this order.
 
