@@ -229,162 +229,40 @@ body {
   border-color: var(--m-accent-line);
 }
 
-/* Two ancestors, one set of rules. CodeRail.vue moves fences OUT of .vp-doc and
-   appends them to an <aside class="code-rail"> that is a *sibling* of .vp-doc, so
-   every `.vp-doc [class*='language-']` selector — VitePress's own and the ones below
-   — stops matching the moment a fence is relocated. Each rule therefore names both
-   contexts, and the ".code-rail only" block that follows re-declares the properties
-   VitePress owns and the rail no longer inherits. */
-.vp-doc div[class*='language-'],
-.code-rail div[class*='language-'] {
+/* ── Code blocks ──────────────────────────────────────────────────────────── */
+.vp-doc div[class*='language-'] {
   background: var(--m-surface);
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
   margin: 1.5rem 0;
 }
 
-.vp-doc div[class*='language-'] pre,
-.code-rail div[class*='language-'] pre {
-  padding: 1.05rem 0;
+.vp-doc div[class*='language-'] pre {
+  padding: 1.15rem 0;
 }
 
-.vp-doc div[class*='language-'] code,
-.code-rail div[class*='language-'] code {
+.vp-doc div[class*='language-'] code {
   font-size: 14px;
   line-height: 1.68;
 }
 
 /* The language tag sits as a mono label in the corner, and steps aside on hover
    so it never collides with the copy button. */
-.vp-doc div[class*='language-'] > span.lang,
-.code-rail div[class*='language-'] > span.lang {
+.vp-doc div[class*='language-'] > span.lang {
   font-family: var(--m-font-mono);
   font-size: 12px;
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--m-text-3);
-  top: 9px;
-  right: 14px;
+  top: 4px;
+  right: 12px;
 }
 
-.vp-doc div[class*='language-'] > button.copy,
-.code-rail div[class*='language-'] > button.copy {
+.vp-doc div[class*='language-'] > button.copy {
   border-radius: var(--m-radius-sm);
   border-color: var(--m-border);
   background-color: var(--m-elevated);
-}
-
-/* ── Fences inside the rail: the VitePress-owned half ──────────────────────
-   Everything below is transcribed from VitePress's own
-   node_modules/vitepress/dist/client/theme-default/styles/components/vp-doc.css
-   (the `.vp-doc [class*='language-'] …` rules), which the rail's fences fall out
-   of. --vp-* variables are reused rather than resolved, so a VitePress or palette
-   change still reaches the rail. Two deliberate departures from the source:
-     · The transitions are 0.2s (this theme's motion ceiling) rather than 0.25s/0.4s,
-       and only hover/focus properties transition — no 0.5s colour crossfades.
-     · top/right/border-color/border-radius/background-color for span.lang and
-       button.copy are NOT repeated here; the shared rules above already set them
-       for both contexts, and these rules come after, so anything repeated would
-       silently undo them. */
-.code-rail div[class*='language-'] {
-  position: relative;
-  overflow-x: auto;
-}
-
-.code-rail div[class*='language-'] pre {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  background: transparent;
-  overflow-x: auto;
-  direction: ltr;
-  text-align: left;
-  white-space: pre;
-  tab-size: 4;
-}
-
-.code-rail div[class*='language-'] code {
-  display: block;
-  padding: 0 24px;
-  width: fit-content;
-  min-width: 100%;
-  color: var(--vp-code-block-color);
-  direction: ltr;
-  text-align: left;
-  white-space: pre;
-  tab-size: 4;
-}
-
-.code-rail div[class*='language-'] > button.copy {
-  direction: ltr;
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 3;
-  border-width: 1px;
-  border-style: solid;
-  width: 40px;
-  height: 40px;
-  opacity: 0;
-  cursor: pointer;
-  background-image: var(--vp-icon-copy);
-  background-position: 50%;
-  background-size: 20px;
-  background-repeat: no-repeat;
-  transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
-}
-
-.code-rail div[class*='language-']:hover > button.copy,
-.code-rail div[class*='language-'] > button.copy:focus {
-  opacity: 1;
-}
-
-.code-rail div[class*='language-'] > button.copy:hover,
-.code-rail div[class*='language-'] > button.copy.copied {
-  border-color: var(--vp-code-copy-code-hover-border-color);
-  background-color: var(--vp-code-copy-code-hover-bg);
-}
-
-.code-rail div[class*='language-'] > button.copy.copied,
-.code-rail div[class*='language-'] > button.copy:hover.copied {
-  border-radius: 0 var(--m-radius-sm) var(--m-radius-sm) 0;
-  background-color: var(--vp-code-copy-code-hover-bg);
-  background-image: var(--vp-icon-copied);
-}
-
-.code-rail div[class*='language-'] > button.copy.copied::before,
-.code-rail div[class*='language-'] > button.copy:hover.copied::before {
-  position: relative;
-  top: -1px;
-  transform: translateX(calc(-100% - 1px));
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: 1px solid var(--vp-code-copy-code-hover-border-color);
-  border-right: 0;
-  border-radius: var(--m-radius-sm) 0 0 var(--m-radius-sm);
-  padding: 0 10px;
-  width: fit-content;
-  height: 40px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--vp-code-copy-code-active-text);
-  background-color: var(--vp-code-copy-code-hover-bg);
-  white-space: nowrap;
-  content: var(--vp-code-copy-copied-text-content);
-}
-
-.code-rail div[class*='language-'] > span.lang {
-  position: absolute;
-  z-index: 2;
-  user-select: none;
-  transition: opacity 0.2s ease;
-}
-
-.code-rail div[class*='language-']:hover > button.copy + span.lang,
-.code-rail div[class*='language-'] > button.copy:focus + span.lang {
-  opacity: 0;
 }
 
 /* ── Tables ─────────────────────────────────────────────────────────────── */

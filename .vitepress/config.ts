@@ -237,10 +237,6 @@ export default withMermaid(defineConfig({
     // time, from the same fetched clone the docs are generated from — so the landing
     // page cannot claim a section or a count the site does not actually contain.
     tree: buildToolkitTree(pages),
-    // Pages that get the sticky code rail. Path allowlist, not frontmatter: docs content
-    // is cloned from upstream and assembled unmodified. Start narrow — the rail earns its
-    // keep on install/usage prose and gets in the way everywhere else.
-    codeRail: ['/introduction'],
     nav: [
       { text: 'Introduction', link: '/introduction' },
       {

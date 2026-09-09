@@ -230,38 +230,7 @@ check(
   JSON.stringify(eyebrows) === JSON.stringify(['01', '02', '03', '04', '05'])
 )
 
-// 14. Every codeRail allowlist entry resolves to a page that actually exists, and at
-//     least one of them actually has a code fence to move. railEnabled() answers false
-//     for an unknown path, so a renamed or deleted route turns the whole feature off
-//     everywhere with no error and no visual difference on any page a reviewer opens —
-//     the rail simply stops existing. code-rail.test.ts exercises the matcher against a
-//     fixture allowlist and can't see the real one, which is the gap this closes.
-//
-//     The allowlist is read out of config.ts as text rather than by importing it: the
-//     config is an async factory that re-clones and re-derives the whole toolkit, and
-//     this script has no business running that again just to read one array.
-const railMatch = configSrc.match(/codeRail:\s*\[([^\]]*)\]/)
-check('codeRail allowlist found in config.ts', railMatch !== null, 'the regex, not the config, may be what broke')
-const railEntries = railMatch ? [...railMatch[1].matchAll(/'([^']+)'/g)].map((m) => m[1]) : []
-check(`codeRail allowlist is non-empty: [${railEntries}]`, railEntries.length > 0)
 
-let railFencePages = 0
-for (const entry of railEntries) {
-  // Mirrors railEnabled()'s route shapes: a trailing '/' is a directory (its index.html),
-  // anything else is a page.
-  const route = entry.endsWith('/')
-    ? join(entry.replace(/^\//, ''), 'index.html')
-    : `${entry.replace(/^\//, '')}.html`
-  const full = join(DIST, route)
-  const exists = existsSync(full)
-  check(`codeRail page exists: ${entry} -> ${route}`, exists)
-  if (exists && readFileSync(full, 'utf8').includes("class=\"language-")) railFencePages += 1
-}
-check(
-  `at least one codeRail page has a code fence (${railFencePages}/${railEntries.length})`,
-  railFencePages > 0,
-  'the rail is enabled only on pages with no fences to put in it'
-)
 
 console.log('')
 if (failures.length) {

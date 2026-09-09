@@ -7,7 +7,6 @@ import NotFound from './NotFound.vue'
 import ToolTabs from './ToolTabs.vue'
 import HeroFrame from './HeroFrame.vue'
 import TierRoute from './TierRoute.vue'
-import CodeRail from './CodeRail.vue'
 import './palette.css'
 import './theme.css'
 
@@ -15,7 +14,7 @@ export default {
   extends: DefaultTheme,
   Layout() {
     return h(DefaultTheme.Layout, null, {
-      'doc-before': () => [h(PlatformBadge), h(CodeRail)],
+      'doc-before': () => [h(PlatformBadge)],
       'not-found': () => h(NotFound)
     })
   },

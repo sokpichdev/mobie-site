@@ -203,8 +203,16 @@ describe('TierRoute.vue uses the scales', () => {
   })
 })
 
-describe('CodeRail.vue uses the scales', () => {
+describe('ToolTabs.vue uses the scales', () => {
   it('has no literal sizing lengths', () => {
-    expect(literalSizingOffenders(join(THEME, 'CodeRail.vue'))).toEqual([])
+    expect(literalSizingOffenders(join(THEME, 'ToolTabs.vue'))).toEqual([])
   })
 })
+
+describe('PlatformBadge.vue uses the scales', () => {
+  it('has no literal sizing lengths', () => {
+    expect(literalSizingOffenders(join(THEME, 'PlatformBadge.vue'), ['0.22rem', '0.6rem'])).toEqual([])
+  })
+})
+
+
