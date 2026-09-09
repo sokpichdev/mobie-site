@@ -11,9 +11,21 @@ const moved: Array<{ node: Element; placeholder: Comment }> = []
 
 const MIN_WIDTH = 1280
 
+// Invariant: a moved fence is restored to its placeholder's exact position only if that
+// placeholder is still attached to the live document. On SPA navigation, VitePress removes
+// the outgoing page's root as a single hostRemove and unmounts its descendants with
+// doRemove=false — so a placeholder buried in that subtree keeps its old parentNode (the
+// reference isn't nulled) but is no longer connected to the document. isConnected is what
+// actually distinguishes "still on screen, safe to swap back" from "page already torn down
+// out from under us"; parentNode alone would silently reattach the fence into dead DOM and
+// leak it out of the rail's view forever. An orphaned fence is simply dropped.
 function restore() {
   for (const { node, placeholder } of moved.splice(0)) {
-    placeholder.parentNode?.replaceChild(node, placeholder)
+    if (placeholder.isConnected) {
+      placeholder.parentNode?.replaceChild(node, placeholder)
+    } else {
+      node.parentNode?.removeChild(node)
+    }
   }
 }
 
@@ -34,8 +46,14 @@ function collect() {
   }
 }
 
+// The sole gate in front of collect(): both activate() (after navigation) and onResize
+// (after a viewport change, with no navigation at all) end here, and neither may reach
+// collect() without this page passing the allowlist — a resize on a non-allowlisted page
+// with its own code fences must never pull them into a rail that was never supposed to
+// exist there.
 function sync() {
   restore()
+  if (!railEnabled(route.path, theme.value.codeRail ?? [])) return
   if (typeof window !== 'undefined' && window.innerWidth >= MIN_WIDTH) collect()
 }
 
@@ -47,12 +65,18 @@ function sync() {
 // hook for this: it fires from onVnodeMounted/onVnodeUpdated/onVnodeUnmounted on the page
 // component itself, so the DOM is already settled whenever it runs.
 //
-// That hook fires more than once per navigation — e.g. once as the new page mounts and
-// again as the outgoing page unmounts — and by the second call route.path already reads
-// as the *new* page too, so it can't be used to tell "still the same navigation" from "a
-// stale repeat". activePath tracks which page we last actually acted on, so a repeat call
-// for that same page is a no-op instead of a blind restore() that would undo a collection
-// that just succeeded.
+// That hook fires more than once per navigation. When the outgoing and incoming pages are
+// different component types, Vue's patch() unmounts the outgoing vnode *before* mounting
+// the incoming one and queues both vnode hooks via queuePostRenderEffect in that same
+// order — so the outgoing page's onVnodeUnmounted actually fires first, not last. It also
+// fires once more, redundantly, on the very first page load (onMounted's own call races
+// the initial onVnodeMounted). None of that ordering actually matters here: by the time
+// either call runs, route.path already reads as the *new* page, so both calls are
+// observationally identical and can't be told apart by path alone. activePath tracks which
+// page we last actually acted on, so a repeat call — first or second, mount or unmount —
+// is a no-op instead of a blind restore() that would undo a collection that just
+// succeeded. (restore() itself is separately guarded against the outgoing page's own DOM
+// having already been torn down — see its isConnected check above.)
 let activePath: string | null = null
 let generation = 0
 
