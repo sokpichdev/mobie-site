@@ -9,7 +9,20 @@ const route = useRoute()
 const rail = ref<HTMLElement | null>(null)
 const moved: Array<{ node: Element; placeholder: Comment }> = []
 
-const MIN_WIDTH = 1280
+// One source of truth for "is the rail visible?". The CSS below hides the rail under
+// 1280px; this string builds that same breakpoint, and the <style> block's media query
+// is its inverse — so the two cannot drift. Comparing window.innerWidth instead (as this
+// did) was not equivalent: innerWidth includes a classic scrollbar, a media query is
+// evaluated against the initial containing block, which does not. Between roughly 1280px
+// and 1295px on a browser with classic scrollbars the JS said "collect" while the CSS
+// said "display: none", and every fence on the page disappeared into a hidden rail with
+// only comment nodes left behind.
+const RAIL_MIN_WIDTH = 1280
+const RAIL_QUERY = `(min-width: ${RAIL_MIN_WIDTH}px)`
+
+// SSR has no window; treat "no window" as "no rail", exactly as the old innerWidth guard
+// did, and let the client's first activate() decide for real.
+const railMedia = typeof window === 'undefined' ? null : window.matchMedia(RAIL_QUERY)
 
 // Invariant: a moved fence is restored to its placeholder's exact position only if that
 // placeholder is still attached to the live document. On SPA navigation, VitePress removes
@@ -54,7 +67,7 @@ function collect() {
 function sync() {
   restore()
   if (!railEnabled(route.path, theme.value.codeRail ?? [])) return
-  if (typeof window !== 'undefined' && window.innerWidth >= MIN_WIDTH) collect()
+  if (railMedia?.matches) collect()
 }
 
 // VitePress swaps page content client-side without remounting the layout, so onMounted
@@ -94,21 +107,24 @@ async function activate() {
   sync()
 }
 
-function onResize() {
+// Driven by the MediaQueryList rather than by resize: it fires only when the answer to
+// "is the rail visible?" actually changes, which is the only resize this component cares
+// about, and it is the same evaluation the CSS makes.
+function onBreakpointChange() {
   generation++ // invalidate any activate() still waiting on nextTick
   sync()
 }
 
 onMounted(() => {
   activate()
-  window.addEventListener('resize', onResize)
+  railMedia?.addEventListener('change', onBreakpointChange)
 })
 
 onContentUpdated(() => activate())
 
 onUnmounted(() => {
   restore()
-  window.removeEventListener('resize', onResize)
+  railMedia?.removeEventListener('change', onBreakpointChange)
 })
 </script>
 
@@ -141,7 +157,12 @@ onUnmounted(() => {
   margin: var(--m-s-2) 0;
 }
 
-@media (max-width: 1279px) {
+/* Written as the exact negation of RAIL_QUERY above — same feature, same number — rather
+   than as `max-width: 1279px`, which is not the same question: it also excludes the
+   fractional widths between 1279px and 1280px that browser zoom and fractional device
+   pixel ratios produce. The two must agree exactly; a gap of even a scrollbar's width
+   moves every fence into a hidden rail and leaves nothing but comment nodes behind. */
+@media not all and (min-width: 1280px) {
   .code-rail {
     display: none;
   }
