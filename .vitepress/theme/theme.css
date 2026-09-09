@@ -375,3 +375,101 @@ body {
   border-radius: var(--m-radius);
   border-color: var(--m-border);
 }
+
+/* ── Footer ─────────────────────────────────────────────────────────────────
+   Stock VitePress centres the footer on a filled band. Here it is a hairline
+   rule and two lines of mono meta, left-aligned with the content above it. */
+.VPFooter {
+  border-top: 1px solid var(--m-border) !important;
+  background: transparent !important;
+  padding: var(--m-s-5) var(--m-s-4) !important;
+}
+
+.VPFooter .container {
+  text-align: left;
+}
+
+.VPFooter .message,
+.VPFooter .copyright {
+  font-family: var(--m-font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.01em;
+  line-height: 1.8;
+  color: var(--m-text-3);
+}
+
+.VPFooter .copyright {
+  margin-top: var(--m-s-1);
+}
+
+.VPFooter a {
+  color: var(--m-text-2) !important;
+  text-decoration: none;
+  text-decoration-line: none !important;
+  border-bottom: 1px solid var(--m-border-strong) !important;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.VPFooter a:hover {
+  color: var(--m-accent) !important;
+  border-bottom-color: var(--m-accent-line) !important;
+}
+
+/* ── Search results ─────────────────────────────────────────────────────────
+   The shell is already styled above; the rows, the empty state and the keyboard
+   hints are not, and they are what a reader actually looks at. */
+.VPLocalSearchBox .result {
+  border: 1px solid transparent !important;
+  border-radius: var(--m-radius-sm);
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.VPLocalSearchBox .result.selected {
+  border-color: var(--m-accent-line) !important;
+  background: var(--m-accent-wash);
+}
+
+.VPLocalSearchBox .result .title {
+  font-size: 0.92rem;
+  color: var(--m-text);
+}
+
+.VPLocalSearchBox .result .titles .title-icon,
+.VPLocalSearchBox .result .titles .text {
+  color: var(--m-text-3);
+}
+
+.VPLocalSearchBox .result mark {
+  background: var(--m-accent-wash) !important;
+  color: var(--m-accent) !important;
+  font-weight: 500;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.VPLocalSearchBox .excerpt-wrapper {
+  border-top: 1px solid var(--m-border);
+}
+
+.VPLocalSearchBox .excerpt {
+  background: var(--m-surface);
+}
+
+/* Keyboard hints — mono label voice, like every other label. */
+.VPLocalSearchBox .search-keyboard-shortcuts,
+.VPLocalSearchBox .search-keyboard-shortcuts span {
+  font-family: var(--m-font-mono);
+  font-size: var(--m-t-label) !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--m-text-3);
+}
+
+.VPLocalSearchBox .search-keyboard-shortcuts kbd {
+  font-family: var(--m-font-mono);
+  background: var(--m-bg-alt) !important;
+  border: 1px solid var(--m-border) !important;
+  border-radius: var(--m-radius-sm);
+  box-shadow: none !important;
+  color: var(--m-text-2);
+}
