@@ -172,14 +172,22 @@ check(`vendored fonts in dist: ${shippedFonts.length}`, shippedFonts.length >= 1
 // 11. The hero's three proof panels reached the built HTML. They render server-side
 //     (v-show, not v-if) precisely so a reader without JavaScript still sees all three —
 //     asserting on the markup is therefore also the no-JS regression test.
-const heroChecks: Array<[string, string]> = [
-  ['tree panel', 'tree__root'],
-  ['session panel', 'Mobile Engineering Agents — loaded ✓'],
-  ['before/after panel', 'contrast__note'],
-  ['stat line', 'hero__stats']
+//
+//     Each needle must be unique to the hero frame, or a broken/unregistered HeroFrame
+//     could still pass this check on unrelated markup elsewhere on the page. The session
+//     needle in particular is NOT 'Mobile Engineering Agents — loaded ✓' by itself — that
+//     exact string also appears in the Install section's <code> confirmation line
+//     (Landing.vue's .confirm paragraph), which this task never touched, so a plain
+//     substring check would pass even with an empty SESSION_TRANSCRIPT. Anchoring on the
+//     session--ok class, which only the transcript's final line carries, closes that gap.
+const heroChecks: Array<[string, boolean]> = [
+  ['tree panel', index.includes('tree__root')],
+  ['session panel', /class="session--ok"[^>]*>Mobile Engineering Agents — loaded ✓/.test(index)],
+  ['before/after panel', index.includes('contrast__note')],
+  ['stat line', index.includes('hero__stats')]
 ]
-for (const [label, needle] of heroChecks) {
-  check(`hero ${label} rendered`, index.includes(needle))
+for (const [label, ok] of heroChecks) {
+  check(`hero ${label} rendered`, ok)
 }
 
 // 12. The tree panel's counts match the derived counts, in order — the same guarantee

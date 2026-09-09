@@ -36,10 +36,12 @@ function onKeydown(event: KeyboardEvent) {
     <div v-show="interactive" class="frame__bar" role="tablist" aria-label="Proof" @keydown="onKeydown">
       <button
         v-for="(tab, i) in TABS"
+        :id="`hero-tab-${i}`"
         :key="tab"
         type="button"
         role="tab"
         :aria-selected="active === i"
+        :aria-controls="`hero-panel-${i}`"
         :tabindex="active === i ? 0 : -1"
         :class="{ 'is-active': active === i }"
         @click="active = i"
@@ -49,7 +51,7 @@ function onKeydown(event: KeyboardEvent) {
     </div>
 
     <!-- TREE — the real toolkit shape, counted at build time. -->
-    <div v-show="shown(0)" class="frame__panel" role="tabpanel">
+    <div id="hero-panel-0" v-show="shown(0)" class="frame__panel" role="tabpanel" aria-labelledby="hero-tab-0">
       <p class="frame__static-label">The toolkit</p>
       <p class="tree__root">.mobile-agents/</p>
       <ul class="tree">
@@ -65,7 +67,7 @@ function onKeydown(event: KeyboardEvent) {
     </div>
 
     <!-- SESSION — authored transcript, not a recording. See hero-data.ts. -->
-    <div v-show="shown(1)" class="frame__panel" role="tabpanel">
+    <div id="hero-panel-1" v-show="shown(1)" class="frame__panel" role="tabpanel" aria-labelledby="hero-tab-1">
       <p class="frame__static-label">A session</p>
       <ol class="session">
         <li v-for="line in SESSION_TRANSCRIPT" :key="line.text" :class="`session--${line.kind}`">
@@ -75,7 +77,7 @@ function onKeydown(event: KeyboardEvent) {
     </div>
 
     <!-- BEFORE/AFTER — the code contrast, moved here from its own section. -->
-    <div v-show="shown(2)" class="frame__panel" role="tabpanel">
+    <div id="hero-panel-2" v-show="shown(2)" class="frame__panel" role="tabpanel" aria-labelledby="hero-tab-2">
       <p class="frame__static-label">The difference</p>
       <div v-for="col in CONTRAST" :key="col.tone" class="contrast" :class="`contrast--${col.tone}`">
         <p class="contrast__label">{{ col.label }}</p>
