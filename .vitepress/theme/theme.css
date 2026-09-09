@@ -13,6 +13,13 @@
 
 html {
   scroll-behavior: smooth;
+  /* The nav is fixed, 60px tall and translucent, so an element scrolled to the very top
+     of the viewport lands *under* it. Nothing set an offset, so following TierRoute's
+     #tier-01…#tier-04 links (or any docs heading anchor) put the target heading behind
+     the nav bar. One page-level rule covers every anchor target on the site; the extra
+     step past --vp-nav-height keeps the heading clear of the nav's blurred edge rather
+     than flush against it. */
+  scroll-padding-top: calc(var(--vp-nav-height) + var(--m-s-4));
 }
 
 body {

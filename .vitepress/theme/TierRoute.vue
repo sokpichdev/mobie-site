@@ -66,8 +66,16 @@ defineProps<{ tiers: { n: string; name: string; count: number }[] }>()
   transform: translateY(-50%) rotate(45deg);
 }
 
-.route__end {
+/* Specificity, not order: `.route > li` above is (0,1,1) and a bare `.route__end` is
+   (0,1,0), so `flex: 1` won wherever the two met and both end caps stretched into full
+   columns — six equal cells instead of narrow caps flanking four tiers. Only the flex
+   declaration is raised; the rest of the cap's styling stays at (0,1,0) so the
+   `.route__end--done` colour override below can still reach it. */
+.route > li.route__end {
   flex: 0 0 auto;
+}
+
+.route__end {
   padding: var(--m-s-4);
   font-family: var(--m-font-mono);
   font-size: var(--m-t-label);

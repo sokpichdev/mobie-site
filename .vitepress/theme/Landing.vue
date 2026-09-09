@@ -625,10 +625,6 @@ async function copy(text: string, event: MouseEvent) {
 }
 
 @media (max-width: 720px) {
-  .landing {
-    padding-top: var(--m-s-6);
-  }
-
   .tier {
     grid-template-columns: 1fr;
     gap: var(--m-s-3);
