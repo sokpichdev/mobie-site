@@ -155,10 +155,10 @@
   --m-t-title: clamp(1.75rem, 2.6vw, 2.25rem);
   --m-t-sub: 1.125rem;
   --m-t-body: 1rem;
-  --m-t-small: 0.9rem;
-  --m-t-micro: 0.78rem;
-  --m-t-fine: 0.72rem;
-  --m-t-label: 11px;
+  --m-t-small: 0.95rem;   /* was 0.9rem  — card labels */
+  --m-t-micro: 0.84rem;   /* was 0.78rem — chips, stat line, blurbs */
+  --m-t-fine: 0.78rem;    /* was 0.72rem — annotations under code */
+  --m-t-label: 12px;      /* was 11px    — mono uppercase labels */
 
   /* ── Spacing scale ────────────────────────────────────────────────────────
      One geometric series. No layout rule may introduce a length outside it —
@@ -181,6 +181,13 @@
 @media (max-width: 768px) {
   :root {
     --m-s-section: var(--m-s-6);
+
+    /* The utility steps grow on small screens. Everything else is already fluid
+       via clamp(), which shrinks toward its floor — these do not, so they are
+       raised explicitly rather than left to bottom out at their desktop size. */
+    --m-t-label: 12.5px;
+    --m-t-fine: 0.82rem;
+    --m-t-micro: 0.88rem;
   }
 }
 

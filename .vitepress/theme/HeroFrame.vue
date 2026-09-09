@@ -93,7 +93,10 @@ function onKeydown(event: KeyboardEvent) {
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
   background: var(--m-surface);
-  min-height: 26rem;
+  /* 26rem fit the panels at their old, smaller reading sizes. Raised to 28rem
+     alongside those sizes so the tree/transcript/contrast panels still fit
+     without reflowing against the taller text. */
+  min-height: 28rem;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -157,7 +160,9 @@ function onKeydown(event: KeyboardEvent) {
   flex: 1;
   padding: var(--m-s-4);
   font-family: var(--m-font-mono);
-  font-size: 0.8rem;
+  /* Was 0.8rem — the tree, transcript and contrast proofs are the hero's main
+     evidence and were reading below the ramp's own small step. */
+  font-size: 0.86rem;
   line-height: 1.75;
 }
 
@@ -246,12 +251,14 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 .contrast code {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
 }
 
 .contrast__note {
   margin: var(--m-s-1) 0 0;
-  font-size: 0.72rem;
+  /* Was a literal 0.72rem — exactly the old --m-t-fine value, duplicated
+     instead of referencing the token it matched. */
+  font-size: var(--m-t-fine);
 }
 
 .contrast--bad .contrast__note {

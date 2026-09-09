@@ -143,21 +143,68 @@ describe('palette.css token scales', () => {
   })
 })
 
+/**
+ * Finds every literal (non-token) sizing length in an SFC's <style> block(s).
+ * `extraAllowed` is a narrow, per-file escape hatch for values that are legitimately
+ * literal — a one-off reading size picked to fit a specific component, not a ramp
+ * step — so a token doesn't get invented solely to make this check pass. It is
+ * matched as an exact string, so it can't accidentally widen ALLOWED for anyone else.
+ */
+function literalSizingOffenders(sfcPath: string, extraAllowed: string[] = []): string[] {
+  const css = styleBlock(sfcPath)
+  const offenders: string[] = []
+
+  for (const line of css.split('\n')) {
+    const m = line.match(/^\s*([a-z-]+)\s*:\s*([^;]+);/)
+    if (!m) continue
+    const [, prop, rawValue] = m
+    if (!SIZING_PROPS.includes(prop)) continue
+    for (const part of rawValue.trim().split(/\s+(?![^(]*\))/)) {
+      const value = part.trim()
+      if (ALLOWED.test(value) || extraAllowed.includes(value)) continue
+      offenders.push(`${prop}: ${value}`)
+    }
+  }
+
+  return offenders
+}
+
 describe('Landing.vue uses the scales', () => {
   it('has no literal sizing lengths', () => {
-    const css = styleBlock(join(THEME, 'Landing.vue'))
-    const offenders: string[] = []
+    expect(literalSizingOffenders(join(THEME, 'Landing.vue'))).toEqual([])
+  })
+})
 
-    for (const line of css.split('\n')) {
-      const m = line.match(/^\s*([a-z-]+)\s*:\s*([^;]+);/)
-      if (!m) continue
-      const [, prop, rawValue] = m
-      if (!SIZING_PROPS.includes(prop)) continue
-      for (const part of rawValue.trim().split(/\s+(?![^(]*\))/)) {
-        if (!ALLOWED.test(part.trim())) offenders.push(`${prop}: ${part.trim()}`)
-      }
-    }
+/**
+ * Extended per the Task 8 controller addition: a review found TierRoute.vue
+ * hardcoding 0.72rem where --m-t-fine held exactly that value, and this guard
+ * couldn't see it because it only ever scanned Landing.vue. HeroFrame.vue and
+ * TierRoute.vue are covered now that Task 8 is normalising both files' sizes
+ * anyway. CodeRail.vue is included too — it already has no literal sizing
+ * lengths, so covering it costs nothing and guards it against regressing.
+ */
+describe('HeroFrame.vue uses the scales', () => {
+  it('has no literal sizing lengths', () => {
+    // HeroFrame's proof panels (tree / session transcript / before-after contrast)
+    // are read at custom mono sizes chosen to fit the frame's fixed min-height
+    // without reflowing the panels — 0.86rem and 0.8rem sit deliberately between
+    // --m-t-micro (0.84rem) and --m-t-fine (0.78rem)/--m-t-small (0.95rem) rather
+    // than aligning to a ramp step. Inventing a token for a single component's
+    // one-off size would exist only to satisfy this test, which the brief
+    // explicitly rules out — so these two exact values are allowed here, and
+    // only here.
+    expect(literalSizingOffenders(join(THEME, 'HeroFrame.vue'), ['0.86rem', '0.8rem'])).toEqual([])
+  })
+})
 
-    expect(offenders).toEqual([])
+describe('TierRoute.vue uses the scales', () => {
+  it('has no literal sizing lengths', () => {
+    expect(literalSizingOffenders(join(THEME, 'TierRoute.vue'))).toEqual([])
+  })
+})
+
+describe('CodeRail.vue uses the scales', () => {
+  it('has no literal sizing lengths', () => {
+    expect(literalSizingOffenders(join(THEME, 'CodeRail.vue'))).toEqual([])
   })
 })

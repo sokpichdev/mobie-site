@@ -130,49 +130,56 @@ body {
    Reference-manual scale: serif for h1/h2 (the running structure of the page),
    sans for h3/h4 (sub-structure inside a section). Serif at modest weight reads
    as a typeset document rather than a product page. */
-.vp-doc h1,
-.vp-doc h2 {
+/* h1/h2 and h3/h4 previously shared a combined rule for family/weight/color, with
+   size set separately per tag. Collapsed into one rule per tag (family/weight/
+   color duplicated instead of shared) so every heading's font-size lives beside
+   its selector — a combined selector with the size declared elsewhere let h3
+   read from a rule with no font-size in it at all when checked in isolation. */
+.vp-doc h1 {
   font-family: var(--m-font-serif);
   font-weight: 500;
-  letter-spacing: -0.012em;
   color: var(--m-text);
-}
-
-.vp-doc h3,
-.vp-doc h4 {
-  font-family: var(--m-font);
-  font-weight: 600;
-  letter-spacing: -0.012em;
-  color: var(--m-text);
-}
-
-.vp-doc h1 {
-  font-size: 2.5rem;
+  font-size: 2.6rem;
   line-height: 1.12;
   letter-spacing: -0.018em;
   margin-bottom: 0.6rem;
 }
 
 .vp-doc h2 {
-  font-size: 1.5rem;
+  font-family: var(--m-font-serif);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  color: var(--m-text);
+  font-size: 1.65rem;
   border-top: 1px solid var(--m-border);
   padding-top: 2.1rem;
   margin-top: 3.2rem;
 }
 
+/* h3 and h4 must both outrank the prose they head — h4 was previously 0.95rem,
+   smaller than the 15.5px body text, which read as a bolded paragraph rather
+   than a heading. */
 .vp-doc h3 {
-  font-size: 1.02rem;
+  font-family: var(--m-font);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--m-text);
+  font-size: 1.3rem;
   margin-top: 2.2rem;
 }
 
 .vp-doc h4 {
-  font-size: 0.95rem;
+  font-family: var(--m-font);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--m-text);
+  font-size: 1.08rem;
 }
 
 .vp-doc p,
 .vp-doc li {
-  font-size: 15.5px;
-  line-height: 1.72;
+  font-size: 17px;
+  line-height: 1.75;
   color: var(--m-text-2);
 }
 
@@ -392,7 +399,9 @@ body {
 .VPFooter .message,
 .VPFooter .copyright {
   font-family: var(--m-font-mono);
-  font-size: 0.74rem;
+  /* Was 0.74rem, below the 0.78rem reading floor — this is the licence/build
+     line, read rather than glanced at, unlike the uppercase labels nearby. */
+  font-size: var(--m-t-fine);
   letter-spacing: 0.01em;
   line-height: 1.8;
   color: var(--m-text-3);
