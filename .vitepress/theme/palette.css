@@ -154,7 +154,11 @@
   --m-t-display: clamp(2.75rem, 5.5vw, 4rem);
   --m-t-title: clamp(1.75rem, 2.6vw, 2.25rem);
   --m-t-sub: 1.125rem;
-  --m-t-body: 1rem;
+  /* 17px, matching .vp-doc p/li in theme.css. Was 1rem: the landing page's .lede — the
+     only consumer of this token — then read a full pixel smaller than the prose a reader
+     lands in one click later, on the same screen, in the same typeface. Body size is the
+     one step that has to agree across the two scales, because the reader crosses it. */
+  --m-t-body: 1.0625rem;
   --m-t-small: 0.95rem;   /* was 0.9rem  — card labels */
   --m-t-micro: 0.84rem;   /* was 0.78rem — chips, stat line, blurbs */
   --m-t-fine: 0.78rem;    /* was 0.72rem — annotations under code */

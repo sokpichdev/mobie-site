@@ -75,7 +75,7 @@ body {
 
 .VPSidebarItem.level-0 > .item > .text {
   font-family: var(--m-font-mono);
-  font-size: 11px !important;
+  font-size: 12px !important;
   font-weight: 500 !important;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -394,7 +394,7 @@ body {
 
 .vp-doc th {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -434,18 +434,18 @@ body {
 .vp-doc blockquote > p {
   margin: 0;
   color: var(--m-text-2);
-  font-size: 14.5px;
+  font-size: 15.5px;
 }
 
 .vp-doc .custom-block {
   border-radius: var(--m-radius);
   border: 1px solid var(--m-border);
-  font-size: 14.5px;
+  font-size: 15.5px;
 }
 
 .vp-doc .custom-block-title {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -463,14 +463,14 @@ body {
 /* ── Page chrome: outline, prev/next, edit link ────────────────────────── */
 .VPDocAsideOutline .outline-title {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--m-text-3);
 }
 
 .VPDocAsideOutline .outline-link {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--m-text-2);
 }
 
@@ -488,7 +488,7 @@ body {
 
 .VPDocFooter .pager-link .desc {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--m-text-3);
