@@ -4,3 +4,5 @@ dist/
 .vitepress/cache/
 .vitepress/dist/
 .DS_Store
+.superpowers/
+docs/
