@@ -48,6 +48,24 @@ defineProps<{ tiers: { n: string; name: string; count: number }[] }>()
   background: var(--m-border-strong);
 }
 
+/* Arrowhead: a hairline square clipped to its top-right corner and rotated
+   45deg, sitting flush with the end of the connector it points along. */
+.route > li + li {
+  position: relative;
+}
+
+.route > li + li::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(var(--m-s-4) - 5px);
+  width: 5px;
+  height: 5px;
+  border-top: 1px solid var(--m-border-strong);
+  border-right: 1px solid var(--m-border-strong);
+  transform: translateY(-50%) rotate(45deg);
+}
+
 .route__end {
   flex: 0 0 auto;
   padding: var(--m-s-4);
@@ -72,8 +90,14 @@ defineProps<{ tiers: { n: string; name: string; count: number }[] }>()
   transition: background-color 0.15s ease;
 }
 
-.route__tier:hover a {
+.route__tier:hover a,
+.route__tier a:focus-visible {
   background: var(--m-accent-wash);
+}
+
+.route__tier a:focus-visible {
+  outline: 2px solid var(--m-accent);
+  outline-offset: -2px;
 }
 
 .route__n {
@@ -95,7 +119,7 @@ defineProps<{ tiers: { n: string; name: string; count: number }[] }>()
 .route__count {
   display: block;
   font-family: var(--m-font-mono);
-  font-size: 0.72rem;
+  font-size: var(--m-t-fine);
   color: var(--m-text-3);
   margin-top: var(--m-s-1);
 }
@@ -115,6 +139,14 @@ defineProps<{ tiers: { n: string; name: string; count: number }[] }>()
     width: 1px;
     height: var(--m-s-4);
     margin: 0 auto;
+  }
+
+  /* Same corner, rotated a further 90deg so the arrowhead points down the
+     now-vertical connector instead of right along the horizontal one. */
+  .route > li + li::after {
+    top: calc(var(--m-s-4) - 5px);
+    left: 50%;
+    transform: translateX(-50%) rotate(135deg);
   }
 
   .route__tier a {
