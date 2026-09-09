@@ -144,34 +144,55 @@ check(
 //    real if nothing re-introduces the CDN — a stray <link> in a future head entry or
 //    an @import inside a component's <style> would silently undo it, and the browser
 //    would still render correctly, so nothing else would catch it.
-const htmlFiles: string[] = []
-function collectHtml(dir: string) {
+//    Named for what it collects: HTML *and* CSS, because an @import inside a component's
+//    <style> leaks into the emitted stylesheet, never into the markup.
+const textAssets: string[] = []
+function collectTextAssets(dir: string) {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
-    if (statSync(full).isDirectory()) collectHtml(full)
-    else if (entry.endsWith('.html') || entry.endsWith('.css')) htmlFiles.push(full)
+    if (statSync(full).isDirectory()) collectTextAssets(full)
+    else if (entry.endsWith('.html') || entry.endsWith('.css')) textAssets.push(full)
   }
 }
-collectHtml(DIST)
-const cdnLeaks = htmlFiles.filter((f) => {
+collectTextAssets(DIST)
+const cdnLeaks = textAssets.filter((f) => {
   const body = readFileSync(f, 'utf8')
   return body.includes('fonts.googleapis.com') || body.includes('fonts.gstatic.com')
 })
 check(
-  `no Google Fonts requests in ${htmlFiles.length} built files`,
+  `no Google Fonts requests in ${textAssets.length} built files`,
   cdnLeaks.length === 0,
   cdnLeaks.slice(0, 5).join(', ')
 )
 
-// 10. The vendored faces actually shipped. A missing file degrades silently to a
-//     system font, which looks "fine" and hides the regression.
+// 10. The vendored faces actually shipped — by name, not by count. A count alone
+//     (`>= 10`) passes a same-count swap and a stale preload href: the @font-face rule
+//     or the <link rel=preload> points at a filename that 404s, the browser falls back
+//     to a system font or simply wastes the preload, and the page still renders, so
+//     nothing else notices. Cross-check the exact filenames the CSS and the config ask
+//     for against the directory that actually shipped.
 const fontDir = join(DIST, 'fonts')
 const shippedFonts = existsSync(fontDir) ? readdirSync(fontDir).filter((f) => f.endsWith('.woff2')) : []
 check(`vendored fonts in dist: ${shippedFonts.length}`, shippedFonts.length >= 10)
 
-// 11. The hero's three proof panels reached the built HTML. They render server-side
-//     (v-show, not v-if) precisely so a reader without JavaScript still sees all three —
-//     asserting on the markup is therefore also the no-JS regression test.
+const paletteCss = readFileSync('.vitepress/theme/palette.css', 'utf8')
+const configSrc = readFileSync('.vitepress/config.ts', 'utf8')
+const facesInCss = [...paletteCss.matchAll(/url\('\/fonts\/([^']+)'\)/g)].map((m) => m[1])
+const facesPreloaded = [...configSrc.matchAll(/href: '\/fonts\/([^']+)'/g)].map((m) => m[1])
+// A regex that silently matches nothing would make every check below vacuously true.
+check(`palette.css references font files: ${facesInCss.length}`, facesInCss.length > 0)
+check(`config.ts preloads font files: ${facesPreloaded.length}`, facesPreloaded.length > 0)
+for (const face of [...new Set([...facesInCss, ...facesPreloaded])]) {
+  check(`referenced font shipped: ${face}`, shippedFonts.includes(face))
+}
+
+// 11. The hero's three proof panels reached the built HTML. What makes them render
+//     server-side is that HeroFrame's `interactive` flag starts `false` and is only
+//     flipped on mount — under `v-if` and `interactive === false` the panels would render
+//     server-side too, so `v-show` is not the reason and never was. `v-show` governs the
+//     *hydrated* behaviour (the panels stay in the DOM and are toggled by display), which
+//     is why a reader without JavaScript keeps all three. Asserting on the markup is
+//     therefore also the no-JS regression test.
 //
 //     Each needle must be unique to the hero frame, or a broken/unregistered HeroFrame
 //     could still pass this check on unrelated markup elsewhere on the page. The session
@@ -207,6 +228,39 @@ const eyebrows = [...index.matchAll(/eyebrow[^>]*>\s*(\d{2})\s*—/g)].map((m) =
 check(
   `landing chapters numbered sequentially: [${eyebrows}]`,
   JSON.stringify(eyebrows) === JSON.stringify(['01', '02', '03', '04', '05'])
+)
+
+// 14. Every codeRail allowlist entry resolves to a page that actually exists, and at
+//     least one of them actually has a code fence to move. railEnabled() answers false
+//     for an unknown path, so a renamed or deleted route turns the whole feature off
+//     everywhere with no error and no visual difference on any page a reviewer opens —
+//     the rail simply stops existing. code-rail.test.ts exercises the matcher against a
+//     fixture allowlist and can't see the real one, which is the gap this closes.
+//
+//     The allowlist is read out of config.ts as text rather than by importing it: the
+//     config is an async factory that re-clones and re-derives the whole toolkit, and
+//     this script has no business running that again just to read one array.
+const railMatch = configSrc.match(/codeRail:\s*\[([^\]]*)\]/)
+check('codeRail allowlist found in config.ts', railMatch !== null, 'the regex, not the config, may be what broke')
+const railEntries = railMatch ? [...railMatch[1].matchAll(/'([^']+)'/g)].map((m) => m[1]) : []
+check(`codeRail allowlist is non-empty: [${railEntries}]`, railEntries.length > 0)
+
+let railFencePages = 0
+for (const entry of railEntries) {
+  // Mirrors railEnabled()'s route shapes: a trailing '/' is a directory (its index.html),
+  // anything else is a page.
+  const route = entry.endsWith('/')
+    ? join(entry.replace(/^\//, ''), 'index.html')
+    : `${entry.replace(/^\//, '')}.html`
+  const full = join(DIST, route)
+  const exists = existsSync(full)
+  check(`codeRail page exists: ${entry} -> ${route}`, exists)
+  if (exists && readFileSync(full, 'utf8').includes("class=\"language-")) railFencePages += 1
+}
+check(
+  `at least one codeRail page has a code fence (${railFencePages}/${railEntries.length})`,
+  railFencePages > 0,
+  'the rail is enabled only on pages with no fences to put in it'
 )
 
 console.log('')
