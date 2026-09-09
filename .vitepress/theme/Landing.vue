@@ -73,6 +73,9 @@ const TIERS = [
   }
 ]
 
+/** The routing diagram reads its tiers from the same source as the tier list below it. */
+const route = TIERS.map((t) => ({ n: t.n, name: t.name, count: t.agents.length }))
+
 const INSTALL_STEPS = [
   {
     n: '01',
@@ -134,7 +137,7 @@ async function copy(text: string, event: MouseEvent) {
       </div>
     </section>
 
-    <!-- ── Tier map ─────────────────────────────────────── -->
+    <!-- ── The team: routing diagram, then the roster ──── -->
     <section id="tiers" class="tiers">
       <p class="eyebrow">02 — The team</p>
       <h2>You don't get an assistant. You get a team.</h2>
@@ -143,8 +146,10 @@ async function copy(text: string, event: MouseEvent) {
         set constraints lower tiers must respect.
       </p>
 
+      <TierRoute :tiers="route" />
+
       <ol class="tier-list">
-        <li v-for="tier in TIERS" :key="tier.n" class="tier">
+        <li v-for="tier in TIERS" :key="tier.n" :id="`tier-${tier.n}`" class="tier">
           <div class="tier__head">
             <span class="tier__n">{{ tier.n }}</span>
             <div>
@@ -331,112 +336,6 @@ async function copy(text: string, event: MouseEvent) {
   }
 }
 
-/* ── Routing diagram ────────────────────────────────────────────────────────
-   Request → four tiers → merge-ready, drawn in HTML so it reflows and inherits
-   the theme. Horizontal with arrow connectors; stacks vertically on narrow
-   screens. The endpoints are plain text; only the tiers are boxes. */
-.route {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 var(--m-s-5);
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-.route > li {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-/* Connector: a hairline with an arrowhead, sitting between every pair of nodes. */
-.route > li + li::before {
-  content: '';
-  flex: 0 0 1.6rem;
-  height: 1px;
-  background: var(--m-border-strong);
-  position: relative;
-}
-
-.route > li + li {
-  position: relative;
-}
-
-.route > li + li::after {
-  content: '';
-  position: absolute;
-  left: calc(1.6rem - 5px);
-  top: 50%;
-  width: 5px;
-  height: 5px;
-  border-top: 1px solid var(--m-border-strong);
-  border-right: 1px solid var(--m-border-strong);
-  transform: translateY(-50%) rotate(45deg);
-}
-
-.route__tier {
-  flex: 1 1 0;
-}
-
-.route__tier a {
-  flex: 1;
-  display: grid;
-  gap: var(--m-s-1);
-  padding: var(--m-s-2) var(--m-s-3);
-  border: 1px solid var(--m-border-strong);
-  border-radius: var(--m-radius);
-  background: var(--m-surface);
-  color: var(--m-text);
-  text-decoration: none;
-  min-width: 0;
-  transition: border-color 0.15s ease;
-}
-
-.route__tier a:hover {
-  border-color: var(--m-accent);
-}
-
-.route__n {
-  font-family: var(--m-font-mono);
-  font-size: var(--m-t-label);
-  letter-spacing: 0.08em;
-  color: var(--m-accent);
-}
-
-.route__name {
-  font-weight: 600;
-  font-size: var(--m-t-small);
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.route__count {
-  font-family: var(--m-font-mono);
-  font-size: var(--m-t-label);
-  color: var(--m-text-3);
-  white-space: nowrap;
-}
-
-.route__end {
-  flex: 0 0 auto;
-}
-
-.route__end .route__name {
-  font-family: var(--m-font-mono);
-  font-weight: 500;
-  font-size: var(--m-t-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--m-text-3);
-}
-
-.route__end--done .route__name {
-  color: var(--m-positive);
-}
-
 /* ── Buttons ────────────────────────────────────────────────────────────── */
 .cta {
   display: flex;
@@ -480,6 +379,7 @@ async function copy(text: string, event: MouseEvent) {
   list-style: none;
   padding: 0;
   margin: 0;
+  margin-top: var(--m-s-6);
   display: grid;
   gap: var(--m-s-2);
 }
@@ -732,34 +632,6 @@ async function copy(text: string, event: MouseEvent) {
   .tier {
     grid-template-columns: 1fr;
     gap: var(--m-s-3);
-  }
-
-  /* Diagram stacks; the connector becomes a vertical hairline with a down arrow. */
-  .route {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .route > li {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .route > li + li::before {
-    flex: 0 0 1.4rem;
-    width: 1px;
-    height: 1.4rem;
-    margin: 0 auto;
-  }
-
-  .route > li + li::after {
-    left: 50%;
-    top: calc(1.4rem - 5px);
-    transform: translateX(-50%) rotate(135deg);
-  }
-
-  .route__end {
-    text-align: center;
   }
 }
 </style>

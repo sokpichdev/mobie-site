@@ -200,6 +200,15 @@ check(
   JSON.stringify(treeRendered) === JSON.stringify(treeExpected)
 )
 
+// 13. The landing page's chapters are numbered 01–05 with no gaps. Sections were merged
+//     and removed in this pass; a stale eyebrow is invisible in review but obvious to a
+//     reader, and nothing else in the build would catch it.
+const eyebrows = [...index.matchAll(/eyebrow[^>]*>\s*(\d{2})\s*—/g)].map((m) => m[1])
+check(
+  `landing chapters numbered sequentially: [${eyebrows}]`,
+  JSON.stringify(eyebrows) === JSON.stringify(['01', '02', '03', '04', '05'])
+)
+
 console.log('')
 if (failures.length) {
   console.error(`${failures.length} assertion(s) failed.\n`)
