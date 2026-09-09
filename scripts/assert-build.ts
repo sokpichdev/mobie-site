@@ -1,7 +1,7 @@
 // Post-build assertions: does dist/ faithfully represent the fetched toolkit?
 import { readdirSync, statSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { collectPages, countInventory } from '../.vitepress/toolkit-tree'
+import { collectPages, countInventory, buildToolkitTree } from '../.vitepress/toolkit-tree'
 import { needsVPre } from '../.vitepress/vpre'
 
 const SRC = '.content/toolkit'
@@ -139,6 +139,98 @@ check(
     ? `would be v-pre wrapped, so its mermaid diagram would render blank: ${vPreMermaidCollisions.map((p) => p.relPath).join(', ')}`
     : ''
 )
+
+// 9. No page in the built output reaches out to Google Fonts. Self-hosting is only
+//    real if nothing re-introduces the CDN — a stray <link> in a future head entry or
+//    an @import inside a component's <style> would silently undo it, and the browser
+//    would still render correctly, so nothing else would catch it.
+//    Named for what it collects: HTML *and* CSS, because an @import inside a component's
+//    <style> leaks into the emitted stylesheet, never into the markup.
+const textAssets: string[] = []
+function collectTextAssets(dir: string) {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry)
+    if (statSync(full).isDirectory()) collectTextAssets(full)
+    else if (entry.endsWith('.html') || entry.endsWith('.css')) textAssets.push(full)
+  }
+}
+collectTextAssets(DIST)
+const cdnLeaks = textAssets.filter((f) => {
+  const body = readFileSync(f, 'utf8')
+  return body.includes('fonts.googleapis.com') || body.includes('fonts.gstatic.com')
+})
+check(
+  `no Google Fonts requests in ${textAssets.length} built files`,
+  cdnLeaks.length === 0,
+  cdnLeaks.slice(0, 5).join(', ')
+)
+
+// 10. The vendored faces actually shipped — by name, not by count. A count alone
+//     (`>= 10`) passes a same-count swap and a stale preload href: the @font-face rule
+//     or the <link rel=preload> points at a filename that 404s, the browser falls back
+//     to a system font or simply wastes the preload, and the page still renders, so
+//     nothing else notices. Cross-check the exact filenames the CSS and the config ask
+//     for against the directory that actually shipped.
+const fontDir = join(DIST, 'fonts')
+const shippedFonts = existsSync(fontDir) ? readdirSync(fontDir).filter((f) => f.endsWith('.woff2')) : []
+check(`vendored fonts in dist: ${shippedFonts.length}`, shippedFonts.length >= 10)
+
+const paletteCss = readFileSync('.vitepress/theme/palette.css', 'utf8')
+const configSrc = readFileSync('.vitepress/config.ts', 'utf8')
+const facesInCss = [...paletteCss.matchAll(/url\('\/fonts\/([^']+)'\)/g)].map((m) => m[1])
+const facesPreloaded = [...configSrc.matchAll(/href: '\/fonts\/([^']+)'/g)].map((m) => m[1])
+// A regex that silently matches nothing would make every check below vacuously true.
+check(`palette.css references font files: ${facesInCss.length}`, facesInCss.length > 0)
+check(`config.ts preloads font files: ${facesPreloaded.length}`, facesPreloaded.length > 0)
+for (const face of [...new Set([...facesInCss, ...facesPreloaded])]) {
+  check(`referenced font shipped: ${face}`, shippedFonts.includes(face))
+}
+
+// 11. The hero's three proof panels reached the built HTML. What makes them render
+//     server-side is that HeroFrame's `interactive` flag starts `false` and is only
+//     flipped on mount — under `v-if` and `interactive === false` the panels would render
+//     server-side too, so `v-show` is not the reason and never was. `v-show` governs the
+//     *hydrated* behaviour (the panels stay in the DOM and are toggled by display), which
+//     is why a reader without JavaScript keeps all three. Asserting on the markup is
+//     therefore also the no-JS regression test.
+//
+//     Each needle must be unique to the hero frame, or a broken/unregistered HeroFrame
+//     could still pass this check on unrelated markup elsewhere on the page. The session
+//     needle in particular is NOT 'Mobile Engineering Agents — loaded ✓' by itself — that
+//     exact string also appears in the Install section's <code> confirmation line
+//     (Landing.vue's .confirm paragraph), which this task never touched, so a plain
+//     substring check would pass even with an empty SESSION_TRANSCRIPT. Anchoring on the
+//     session--ok class, which only the transcript's final line carries, closes that gap.
+const heroChecks: Array<[string, boolean]> = [
+  ['tree panel', index.includes('tree__root')],
+  ['session panel', /class="session--ok"[^>]*>Mobile Engineering Agents — loaded ✓/.test(index)],
+  ['before/after panel', index.includes('contrast__note')],
+  ['stat line', index.includes('hero__stats')]
+]
+for (const [label, ok] of heroChecks) {
+  check(`hero ${label} rendered`, ok)
+}
+
+// 12. The tree panel's counts match the derived counts, in order — the same guarantee
+//     assertion 5 gives the inventory grid. A tree that drifts from the real toolkit is
+//     worse than no tree, because it is proof that lies.
+const treeRendered = [...index.matchAll(/tree__count[^>]*>(\d+)/g)].map((m) => Number(m[1]))
+const treeExpected = buildToolkitTree(pages).map((r) => r.count)
+check(
+  `hero tree counts match derived: [${treeRendered}] vs [${treeExpected}]`,
+  JSON.stringify(treeRendered) === JSON.stringify(treeExpected)
+)
+
+// 13. The landing page's chapters are numbered 01–05 with no gaps. Sections were merged
+//     and removed in this pass; a stale eyebrow is invisible in review but obvious to a
+//     reader, and nothing else in the build would catch it.
+const eyebrows = [...index.matchAll(/eyebrow[^>]*>\s*(\d{2})\s*—/g)].map((m) => m[1])
+check(
+  `landing chapters numbered sequentially: [${eyebrows}]`,
+  JSON.stringify(eyebrows) === JSON.stringify(['01', '02', '03', '04', '05'])
+)
+
+
 
 console.log('')
 if (failures.length) {

@@ -5,6 +5,7 @@ import { join } from 'node:path'
 import {
   collectPages,
   countInventory,
+  buildToolkitTree,
   buildRewrites,
   buildSidebar,
   readTitle,
@@ -422,5 +423,112 @@ describe('headingSlug', () => {
     )
     expect(headingSlug('Contributing — everyone is welcome')).toBe('contributing--everyone-is-welcome')
     expect(headingSlug('How It Works')).toBe('how-it-works')
+  })
+})
+
+describe('buildToolkitTree', () => {
+  it('returns one row per non-empty section, in SECTION_ORDER', () => {
+    const rows = buildToolkitTree(collectPages(root))
+    expect(rows.map((r) => r.slug)).toEqual(['agents', 'skills', 'templates', 'examples'])
+  })
+
+  it('carries the display label and the section index link', () => {
+    const rows = buildToolkitTree(collectPages(root))
+    const agents = rows.find((r) => r.slug === 'agents')!
+    expect(agents.label).toBe('Agents')
+    expect(agents.link).toBe('/agents/')
+  })
+
+  it('uses the same counts as countInventory', () => {
+    const pages = collectPages(root)
+    const counts = countInventory(pages)
+    for (const row of buildToolkitTree(pages)) {
+      expect(row.count).toBe(counts[row.slug])
+    }
+  })
+
+  it('omits sections with no content', () => {
+    const rows = buildToolkitTree(collectPages(root))
+    expect(rows.some((r) => r.count === 0)).toBe(false)
+    expect(rows.some((r) => r.slug === 'workflows')).toBe(false)
+  })
+
+  it('appends unknown sections alphabetically after SECTION_ORDER, with proper label casing', () => {
+    // Create a local fixture with a mix of known and unknown sections
+    const localRoot = mkdtempSync(join(tmpdir(), 'toolkit-extras-'))
+    try {
+      // Helper to write files into this fixture
+      const localPut = (rel: string, body = '# Title\n') => {
+        const full = join(localRoot, rel)
+        mkdirSync(join(full, '..'), { recursive: true })
+        writeFileSync(full, body)
+      }
+
+      // Known section (in SECTION_ORDER)
+      localPut('agents/README.md')
+      localPut('agents/expert.md')
+
+      // Unknown sections (not in SECTION_ORDER) with various naming patterns
+      localPut('cli-tools/README.md')
+      localPut('cli-tools/command.md')
+      localPut('design_docs/README.md')
+      localPut('design_docs/guide.md')
+      localPut('zebra_notes/README.md')
+      localPut('zebra_notes/note.md')
+
+      const pages = collectPages(localRoot)
+      const rows = buildToolkitTree(pages)
+
+      // Verify structure: known sections come first in SECTION_ORDER order, unknown sections follow alphabetically
+      const slugs = rows.map((r) => r.slug)
+      expect(slugs).toEqual(['agents', 'cli-tools', 'design_docs', 'zebra_notes'])
+
+      // Verify proper label casing for hyphenated/underscored slugs
+      const cliTools = rows.find((r) => r.slug === 'cli-tools')!
+      expect(cliTools.label).toBe('Cli Tools')
+
+      const designDocs = rows.find((r) => r.slug === 'design_docs')!
+      expect(designDocs.label).toBe('Design Docs')
+
+      const zebraNotes = rows.find((r) => r.slug === 'zebra_notes')!
+      expect(zebraNotes.label).toBe('Zebra Notes')
+
+      // Verify links follow the /{slug}/ pattern
+      expect(cliTools.link).toBe('/cli-tools/')
+      expect(designDocs.link).toBe('/design_docs/')
+
+      // Verify all rows have non-zero counts
+      expect(rows.every((r) => r.count > 0)).toBe(true)
+    } finally {
+      rmSync(localRoot, { recursive: true, force: true })
+    }
+  })
+
+  it('handles doubled/leading/trailing separators without crashing', () => {
+    // Slug with doubled separator: split yields empty strings that must be filtered
+    const pages: Page[] = [
+      { relPath: 'agents/expert.md', dir: 'agents', base: 'expert', isIndex: false },
+      { relPath: 'my--section/guide.md', dir: 'my--section', base: 'guide', isIndex: false }
+    ]
+    const rows = buildToolkitTree(pages)
+    const mySection = rows.find((r) => r.slug === 'my--section')!
+    // Split yields ['my', '', 'section'], filter removes empty, map+join produces 'My Section'
+    expect(mySection.label).toBe('My Section')
+  })
+
+  it('sorts extras alphabetically even when counts object has them unordered (mutation: protects .sort())', () => {
+    // Pass pages in deliberately non-alphabetical order: zebra before alpha.
+    // countInventory inserts in traversal order, so Object.keys(counts) is ['zebra', 'alpha'].
+    // Without .sort(), they'd appear as zebra, alpha; with it, they appear alpha, zebra.
+    // This direct-array test bypasses collectPages, which normalizes order.
+    const pages: Page[] = [
+      { relPath: 'agents/expert.md', dir: 'agents', base: 'expert', isIndex: false },
+      { relPath: 'zebra/guide.md', dir: 'zebra', base: 'guide', isIndex: false },
+      { relPath: 'alpha/note.md', dir: 'alpha', base: 'note', isIndex: false }
+    ]
+    const rows = buildToolkitTree(pages)
+    const slugs = rows.map((r) => r.slug)
+    // agents (from SECTION_ORDER) comes first, then extras sorted alphabetically
+    expect(slugs).toEqual(['agents', 'alpha', 'zebra'])
   })
 })

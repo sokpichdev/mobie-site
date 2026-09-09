@@ -30,7 +30,7 @@ const active = ref(0)
 .tool-tabs {
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
-  margin: 1.6rem 0;
+  margin: var(--m-s-4) 0;
   overflow: hidden;
 }
 
@@ -43,11 +43,11 @@ const active = ref(0)
 
 .tool-tabs__bar button {
   font-family: var(--m-font-mono);
-  font-size: 11px;
+  font-size: var(--m-t-label);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--m-text-3);
-  padding: 0.7rem 0.95rem;
+  padding: var(--m-s-2) var(--m-s-3);
   border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -71,10 +71,10 @@ const active = ref(0)
 }
 
 .tool-tabs__panel {
-  padding: 0.2rem 1.1rem;
+  padding: var(--m-s-1) var(--m-s-3);
 }
 
 .tool-tabs__panel :deep(div[class*='language-']) {
-  margin: 1rem 0;
+  margin: var(--m-s-3) 0;
 }
 </style>

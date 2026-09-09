@@ -36,13 +36,13 @@ const parts = computed(() => {
 <style scoped>
 .mobie-badge {
   display: flex;
-  gap: 0.4rem;
-  margin-bottom: 1.4rem;
+  gap: var(--m-s-1);
+  margin-bottom: var(--m-s-4);
 }
 
 .mobie-badge__chip {
   font-family: var(--m-font-mono);
-  font-size: 10px;
+  font-size: var(--m-t-label);
   font-weight: 500;
   letter-spacing: 0.09em;
   text-transform: uppercase;

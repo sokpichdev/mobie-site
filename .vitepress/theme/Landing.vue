@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useData } from 'vitepress'
+import { statLine } from './hero-data'
+import type { TreeRow } from '../toolkit-tree'
 
 const { theme } = useData()
 
 const REPO = 'https://github.com/sokpichdev/mobile-engineering-agents'
 
 const inventory = computed<Record<string, number>>(() => theme.value.inventory ?? {})
+
+const tree = computed<TreeRow[]>(() => theme.value.tree ?? [])
+const stats = computed(() => statLine(tree.value))
 
 const INVENTORY_ROWS: Array<{ slug: string; label: string; blurb: string }> = [
   { slug: 'agents', label: 'Agents', blurb: 'Loadable expert roles' },
@@ -68,8 +73,8 @@ const TIERS = [
   }
 ]
 
-/** The hero diagram: a request enters, hands down the four tiers, and leaves merge-ready. */
-const ROUTE = TIERS.map((t) => ({ n: t.n, name: t.name, count: t.agents.length }))
+/** The routing diagram reads its tiers from the same source as the tier list below it. */
+const route = TIERS.map((t) => ({ n: t.n, name: t.name, count: t.agents.length }))
 
 const INSTALL_STEPS = [
   {
@@ -108,66 +113,31 @@ async function copy(text: string, event: MouseEvent) {
   <div class="landing">
     <!-- ── Hero ─────────────────────────────────────────── -->
     <section class="hero">
-      <p class="eyebrow">01 — The problem</p>
-      <h1>
-        Turn your AI coding agent into a
-        <em>Senior mobile engineer</em>
-      </h1>
-      <p class="lede">
-        Architecture, security, testing and standards — so the code your agent generates is
-        production-grade, not just plausible.
-      </p>
+      <div class="hero__copy">
+        <p class="eyebrow">01 — The problem</p>
+        <h1>
+          Turn your AI coding agent into a
+          <em>Senior mobile engineer</em>
+        </h1>
+        <p class="lede">
+          Architecture, security, testing and standards — so the code your agent generates is
+          production-grade, not just plausible.
+        </p>
 
-      <!-- Routing diagram: the one visual this toolkit has that nothing else does. -->
-      <ol class="route" aria-label="How a request flows through the agent tiers">
-        <li class="route__end">
-          <span class="route__name">Your request</span>
-        </li>
-        <li v-for="tier in ROUTE" :key="tier.n" class="route__tier">
-          <a href="#tiers">
-            <span class="route__n">{{ tier.n }}</span>
-            <span class="route__name">{{ tier.name }}</span>
-            <span class="route__count">{{ tier.count }} agents</span>
-          </a>
-        </li>
-        <li class="route__end route__end--done">
-          <span class="route__name">Merge-ready</span>
-        </li>
-      </ol>
+        <div class="cta">
+          <a class="btn btn--primary" href="#install">Get started</a>
+          <a class="btn" href="/introduction">Read the docs</a>
+        </div>
 
-      <div class="contrast">
-        <div class="contrast__col contrast__col--bad">
-          <p class="contrast__label">Without the toolkit</p>
-          <pre><code>class LoginVC: UIViewController {
-  UserDefaults.standard.set(
-    token, forKey: "token")
-  // 400 more lines
-}</code></pre>
-          <p class="contrast__note">
-            Massive View Controller · token in plaintext · no tests
-          </p>
-        </div>
-        <div class="contrast__col contrast__col--good">
-          <p class="contrast__label">With the toolkit</p>
-          <pre><code>final class LoginViewModel {
-  let auth: AuthUseCase
-  func submit() async throws {
-    try await auth.login()
-  }
-}</code></pre>
-          <p class="contrast__note">
-            OAuth2 + PKCE · Keychain · MVVM · typed errors · tests
-          </p>
-        </div>
+        <p v-if="stats" class="hero__stats">{{ stats }}</p>
       </div>
 
-      <div class="cta">
-        <a class="btn btn--primary" href="#install">Get started</a>
-        <a class="btn" href="/introduction">Read the docs</a>
+      <div class="hero__frame">
+        <HeroFrame :tree="tree" />
       </div>
     </section>
 
-    <!-- ── Tier map ─────────────────────────────────────── -->
+    <!-- ── The team: routing diagram, then the roster ──── -->
     <section id="tiers" class="tiers">
       <p class="eyebrow">02 — The team</p>
       <h2>You don't get an assistant. You get a team.</h2>
@@ -176,8 +146,10 @@ async function copy(text: string, event: MouseEvent) {
         set constraints lower tiers must respect.
       </p>
 
+      <TierRoute :tiers="route" />
+
       <ol class="tier-list">
-        <li v-for="tier in TIERS" :key="tier.n" class="tier">
+        <li v-for="tier in TIERS" :key="tier.n" :id="`tier-${tier.n}`" class="tier">
           <div class="tier__head">
             <span class="tier__n">{{ tier.n }}</span>
             <div>
@@ -257,12 +229,12 @@ async function copy(text: string, event: MouseEvent) {
 .landing {
   max-width: 68rem;
   margin: 0 auto;
-  padding: 4.5rem 1.5rem 8rem;
+  padding: var(--m-s-6) var(--m-s-4) var(--m-s-8);
   color: var(--m-text);
 }
 
 .landing section {
-  margin-bottom: 7rem;
+  margin-bottom: var(--m-s-section);
   position: relative;
 }
 
@@ -270,14 +242,14 @@ async function copy(text: string, event: MouseEvent) {
 .eyebrow {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--m-s-2);
   font-family: var(--m-font-mono);
-  font-size: 11px;
+  font-size: var(--m-t-label);
   font-weight: 500;
   letter-spacing: 0.13em;
   text-transform: uppercase;
   color: var(--m-accent);
-  margin: 0 0 1.4rem;
+  margin: 0 0 var(--m-s-4);
 }
 
 /* A rule runs out from every section label — the page reads as numbered chapters. */
@@ -290,11 +262,11 @@ async function copy(text: string, event: MouseEvent) {
 
 .landing h1 {
   font-family: var(--m-font-serif);
-  font-size: clamp(2.5rem, 6vw, 4.1rem);
+  font-size: var(--m-t-display);
   font-weight: 500;
   line-height: 1.06;
   letter-spacing: -0.02em;
-  margin: 0 0 1.1rem;
+  margin: 0 0 var(--m-s-3);
   max-width: 20ch;
 }
 
@@ -307,16 +279,16 @@ async function copy(text: string, event: MouseEvent) {
 
 .landing h2 {
   font-family: var(--m-font-serif);
-  font-size: clamp(1.7rem, 3vw, 2.25rem);
+  font-size: var(--m-t-title);
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: -0.015em;
-  margin: 0 0 0.85rem;
+  margin: 0 0 var(--m-s-2);
   max-width: 24ch;
 }
 
 .landing h3 {
-  font-size: 0.97rem;
+  font-size: var(--m-t-sub);
   font-weight: 600;
   letter-spacing: -0.012em;
   margin: 0;
@@ -324,16 +296,15 @@ async function copy(text: string, event: MouseEvent) {
 
 .lede {
   color: var(--m-text-2);
-  font-size: 1.02rem;
+  font-size: var(--m-t-body);
   line-height: 1.68;
   max-width: 44rem;
-  margin: 0 0 2.4rem;
+  margin: 0 0 var(--m-s-5);
 }
 
 /* Grid and flex children default to min-width:auto and refuse to shrink below their
    content's intrinsic width — so a long line inside a <pre> widens its track instead of
    scrolling within it. min-width:0 lets the track shrink and hands overflow to the <pre>. */
-.contrast__col,
 .step,
 .step__code,
 .tier__agents,
@@ -343,193 +314,42 @@ async function copy(text: string, event: MouseEvent) {
 
 /* ── Hero ───────────────────────────────────────────────────────────────── */
 .hero {
-  padding-top: 2rem;
-}
-
-/* ── Routing diagram ────────────────────────────────────────────────────────
-   Request → four tiers → merge-ready, drawn in HTML so it reflows and inherits
-   the theme. Horizontal with arrow connectors; stacks vertically on narrow
-   screens. The endpoints are plain text; only the tiers are boxes. */
-.route {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 2.6rem;
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-.route > li {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-/* Connector: a hairline with an arrowhead, sitting between every pair of nodes. */
-.route > li + li::before {
-  content: '';
-  flex: 0 0 1.6rem;
-  height: 1px;
-  background: var(--m-border-strong);
-  position: relative;
-}
-
-.route > li + li {
-  position: relative;
-}
-
-.route > li + li::after {
-  content: '';
-  position: absolute;
-  left: calc(1.6rem - 5px);
-  top: 50%;
-  width: 5px;
-  height: 5px;
-  border-top: 1px solid var(--m-border-strong);
-  border-right: 1px solid var(--m-border-strong);
-  transform: translateY(-50%) rotate(45deg);
-}
-
-.route__tier {
-  flex: 1 1 0;
-}
-
-.route__tier a {
-  flex: 1;
   display: grid;
-  gap: 0.15rem;
-  padding: 0.8rem 0.9rem;
-  border: 1px solid var(--m-border-strong);
-  border-radius: var(--m-radius);
-  background: var(--m-surface);
-  color: var(--m-text);
-  text-decoration: none;
-  min-width: 0;
-  transition: border-color 0.15s ease;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--m-s-6);
+  align-items: start;
 }
 
-.route__tier a:hover {
-  border-color: var(--m-accent);
-}
-
-.route__n {
+.hero__stats {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  color: var(--m-accent);
-}
-
-.route__name {
-  font-weight: 600;
-  font-size: 0.86rem;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.route__count {
-  font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: var(--m-t-micro);
   color: var(--m-text-3);
-  white-space: nowrap;
+  border-top: 1px solid var(--m-border);
+  padding-top: var(--m-s-3);
+  margin: var(--m-s-5) 0 0;
 }
 
-.route__end {
-  flex: 0 0 auto;
-}
-
-.route__end .route__name {
-  font-family: var(--m-font-mono);
-  font-weight: 500;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--m-text-3);
-}
-
-.route__end--done .route__name {
-  color: var(--m-positive);
-}
-
-.contrast {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin: 3rem 0 2.4rem;
-}
-
-.contrast__col {
-  border: 1px solid var(--m-border);
-  border-radius: var(--m-radius);
-  background: var(--m-surface);
-  padding: 1.1rem;
-}
-
-/* The verdict colour lives on a single top hairline — the card itself stays neutral,
-   so red and green never fight the accent for attention. */
-.contrast__col--bad {
-  box-shadow: inset 0 2px 0 0 var(--m-negative);
-}
-
-.contrast__col--good {
-  box-shadow: inset 0 2px 0 0 var(--m-positive);
-}
-
-.contrast__label {
-  font-family: var(--m-font-mono);
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  margin: 0 0 0.85rem;
-}
-
-.contrast__col--bad .contrast__label {
-  color: var(--m-negative);
-}
-
-.contrast__col--good .contrast__label {
-  color: var(--m-positive);
-}
-
-.contrast pre {
-  background: var(--m-bg);
-  border: 1px solid var(--m-border);
-  border-radius: var(--m-radius-sm);
-  padding: 0.85rem;
-  overflow-x: auto;
-  margin: 0 0 0.8rem;
-}
-
-.contrast code {
-  font-family: var(--m-font-mono);
-  font-size: 12px;
-  line-height: 1.65;
-  color: var(--m-text-2);
-}
-
-.contrast__note {
-  font-size: 0.82rem;
-  color: var(--m-text-3);
-  line-height: 1.55;
-  margin: 0;
+@media (max-width: 1024px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--m-s-5);
+  }
 }
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
 .cta {
   display: flex;
-  gap: 0.6rem;
+  gap: var(--m-s-1);
   flex-wrap: wrap;
 }
 
 .btn {
   display: inline-flex;
   align-items: center;
-  font-size: 0.875rem;
+  font-size: var(--m-t-small);
   font-weight: 500;
   letter-spacing: -0.01em;
-  padding: 0.6rem 1.15rem;
+  padding: var(--m-s-1) var(--m-s-3);
   border-radius: var(--m-radius-sm);
   border: 1px solid var(--m-border-strong);
   background: var(--m-surface);
@@ -559,18 +379,19 @@ async function copy(text: string, event: MouseEvent) {
   list-style: none;
   padding: 0;
   margin: 0;
+  margin-top: var(--m-s-6);
   display: grid;
-  gap: 0.7rem;
+  gap: var(--m-s-2);
 }
 
 .tier {
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
   background: var(--m-surface);
-  padding: 1.35rem 1.4rem;
+  padding: var(--m-s-4) var(--m-s-4);
   display: grid;
   grid-template-columns: minmax(0, 17rem) 1fr;
-  gap: 1.75rem;
+  gap: var(--m-s-5);
   align-items: start;
   transition: border-color 0.15s ease;
 }
@@ -581,23 +402,23 @@ async function copy(text: string, event: MouseEvent) {
 
 .tier__head {
   display: flex;
-  gap: 0.85rem;
+  gap: var(--m-s-2);
 }
 
 .tier__head p {
-  margin: 0.3rem 0 0;
-  font-size: 0.83rem;
+  margin: var(--m-s-1) 0 0;
+  font-size: var(--m-t-micro);
   color: var(--m-text-3);
   line-height: 1.5;
 }
 
 .tier__n {
   font-family: var(--m-font-mono);
-  font-size: 11px;
+  font-size: var(--m-t-label);
   font-weight: 500;
   letter-spacing: 0.06em;
   color: var(--m-accent);
-  padding-top: 0.25rem;
+  padding-top: var(--m-s-1);
 }
 
 .tier__agents {
@@ -606,14 +427,14 @@ async function copy(text: string, event: MouseEvent) {
   margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: var(--m-s-1);
 }
 
 .tier__agents a {
   display: inline-block;
-  font-size: 0.8rem;
+  font-size: var(--m-t-micro);
   font-weight: 400;
-  padding: 0.3rem 0.7rem;
+  padding: var(--m-s-1) var(--m-s-2);
   border: 1px solid var(--m-border);
   background: var(--m-bg);
   border-radius: var(--m-radius-sm);
@@ -631,21 +452,21 @@ async function copy(text: string, event: MouseEvent) {
 .steps {
   list-style: none;
   padding: 0;
-  margin: 0 0 1.8rem;
+  margin: 0 0 var(--m-s-4);
   display: grid;
-  gap: 1.5rem;
+  gap: var(--m-s-4);
 }
 
 .step__head {
   display: flex;
-  gap: 0.85rem;
+  gap: var(--m-s-2);
   align-items: baseline;
-  margin-bottom: 0.7rem;
+  margin-bottom: var(--m-s-2);
 }
 
 .step__n {
   font-family: var(--m-font-mono);
-  font-size: 11px;
+  font-size: var(--m-t-label);
   font-weight: 500;
   color: var(--m-accent);
 }
@@ -658,14 +479,14 @@ async function copy(text: string, event: MouseEvent) {
   background: var(--m-surface);
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
-  padding: 0.95rem 4.75rem 0.95rem 1rem;
+  padding: var(--m-s-3) var(--m-s-6) var(--m-s-3) var(--m-s-3);
   overflow-x: auto;
   margin: 0;
 }
 
 .step__code code {
   font-family: var(--m-font-mono);
-  font-size: 12.5px;
+  font-size: var(--m-t-micro);
   line-height: 1.7;
   color: var(--m-text-2);
   white-space: pre;
@@ -676,14 +497,14 @@ async function copy(text: string, event: MouseEvent) {
   top: 0.6rem;
   right: 0.6rem;
   font-family: var(--m-font-mono);
-  font-size: 10px;
+  font-size: var(--m-t-label);
   letter-spacing: 0.09em;
   text-transform: uppercase;
   background: var(--m-elevated);
   color: var(--m-text-3);
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius-sm);
-  padding: 0.3rem 0.55rem;
+  padding: var(--m-s-1) var(--m-s-1);
   cursor: pointer;
   transition: color 0.12s ease, border-color 0.12s ease;
 }
@@ -704,19 +525,19 @@ async function copy(text: string, event: MouseEvent) {
 }
 
 .confirm {
-  font-size: 0.88rem;
+  font-size: var(--m-t-small);
   color: var(--m-text-3);
   line-height: 1.7;
 }
 
 .confirm code {
   font-family: var(--m-font-mono);
-  font-size: 0.8rem;
+  font-size: var(--m-t-micro);
   color: var(--m-accent);
   border: 1px solid var(--m-accent-line);
   background: var(--m-accent-wash);
   border-radius: var(--m-radius-sm);
-  padding: 0.15rem 0.5rem;
+  padding: var(--m-s-1) var(--m-s-1);
   white-space: nowrap;
 }
 
@@ -727,7 +548,7 @@ async function copy(text: string, event: MouseEvent) {
   margin: 0;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
-  gap: 0.7rem;
+  gap: var(--m-s-2);
 }
 
 .inventory__grid a {
@@ -735,7 +556,7 @@ async function copy(text: string, event: MouseEvent) {
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
   background: var(--m-surface);
-  padding: 1.2rem;
+  padding: var(--m-s-3);
   height: 100%;
   text-decoration: none;
   color: var(--m-text);
@@ -749,7 +570,7 @@ async function copy(text: string, event: MouseEvent) {
 
 .inventory__count {
   display: block;
-  font-size: 1.9rem;
+  font-size: var(--m-t-title);
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1;
@@ -760,16 +581,16 @@ async function copy(text: string, event: MouseEvent) {
 .inventory__label {
   display: block;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: var(--m-t-small);
   letter-spacing: -0.012em;
-  margin-top: 0.5rem;
+  margin-top: var(--m-s-1);
 }
 
 .inventory__blurb {
   display: block;
-  font-size: 0.79rem;
+  font-size: var(--m-t-micro);
   color: var(--m-text-3);
-  margin-top: 0.2rem;
+  margin-top: var(--m-s-1);
   line-height: 1.45;
 }
 
@@ -777,16 +598,16 @@ async function copy(text: string, event: MouseEvent) {
 .tools__list {
   list-style: none;
   padding: 0;
-  margin: 0 0 1.8rem;
+  margin: 0 0 var(--m-s-4);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: var(--m-s-1);
 }
 
 .tools__list li {
   font-family: var(--m-font-mono);
-  font-size: 0.78rem;
-  padding: 0.42rem 0.85rem;
+  font-size: var(--m-t-micro);
+  padding: var(--m-s-1) var(--m-s-2);
   border: 1px solid var(--m-border);
   background: var(--m-surface);
   border-radius: var(--m-radius-sm);
@@ -804,42 +625,9 @@ async function copy(text: string, event: MouseEvent) {
 }
 
 @media (max-width: 720px) {
-  .landing {
-    padding-top: 3rem;
-  }
-
-  .contrast,
   .tier {
     grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  /* Diagram stacks; the connector becomes a vertical hairline with a down arrow. */
-  .route {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .route > li {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .route > li + li::before {
-    flex: 0 0 1.4rem;
-    width: 1px;
-    height: 1.4rem;
-    margin: 0 auto;
-  }
-
-  .route > li + li::after {
-    left: 50%;
-    top: calc(1.4rem - 5px);
-    transform: translateX(-50%) rotate(135deg);
-  }
-
-  .route__end {
-    text-align: center;
+    gap: var(--m-s-3);
   }
 }
 </style>

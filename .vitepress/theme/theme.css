@@ -13,6 +13,13 @@
 
 html {
   scroll-behavior: smooth;
+  /* The nav is fixed, 60px tall and translucent, so an element scrolled to the very top
+     of the viewport lands *under* it. Nothing set an offset, so following TierRoute's
+     #tier-01…#tier-04 links (or any docs heading anchor) put the target heading behind
+     the nav bar. One page-level rule covers every anchor target on the site; the extra
+     step past --vp-nav-height keeps the heading clear of the nav's blurred edge rather
+     than flush against it. */
+  scroll-padding-top: calc(var(--vp-nav-height) + var(--m-s-4));
 }
 
 body {
@@ -75,7 +82,7 @@ body {
 
 .VPSidebarItem.level-0 > .item > .text {
   font-family: var(--m-font-mono);
-  font-size: 11px !important;
+  font-size: 12px !important;
   font-weight: 500 !important;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -130,49 +137,56 @@ body {
    Reference-manual scale: serif for h1/h2 (the running structure of the page),
    sans for h3/h4 (sub-structure inside a section). Serif at modest weight reads
    as a typeset document rather than a product page. */
-.vp-doc h1,
-.vp-doc h2 {
+/* h1/h2 and h3/h4 previously shared a combined rule for family/weight/color, with
+   size set separately per tag. Collapsed into one rule per tag (family/weight/
+   color duplicated instead of shared) so every heading's font-size lives beside
+   its selector — a combined selector with the size declared elsewhere let h3
+   read from a rule with no font-size in it at all when checked in isolation. */
+.vp-doc h1 {
   font-family: var(--m-font-serif);
   font-weight: 500;
-  letter-spacing: -0.012em;
   color: var(--m-text);
-}
-
-.vp-doc h3,
-.vp-doc h4 {
-  font-family: var(--m-font);
-  font-weight: 600;
-  letter-spacing: -0.012em;
-  color: var(--m-text);
-}
-
-.vp-doc h1 {
-  font-size: 2.5rem;
+  font-size: 2.6rem;
   line-height: 1.12;
   letter-spacing: -0.018em;
   margin-bottom: 0.6rem;
 }
 
 .vp-doc h2 {
-  font-size: 1.5rem;
+  font-family: var(--m-font-serif);
+  font-weight: 500;
+  letter-spacing: -0.012em;
+  color: var(--m-text);
+  font-size: 1.65rem;
   border-top: 1px solid var(--m-border);
   padding-top: 2.1rem;
   margin-top: 3.2rem;
 }
 
+/* h3 and h4 must both outrank the prose they head — h4 was previously 0.95rem,
+   smaller than the 15.5px body text, which read as a bolded paragraph rather
+   than a heading. */
 .vp-doc h3 {
-  font-size: 1.02rem;
+  font-family: var(--m-font);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--m-text);
+  font-size: 1.3rem;
   margin-top: 2.2rem;
 }
 
 .vp-doc h4 {
-  font-size: 0.95rem;
+  font-family: var(--m-font);
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--m-text);
+  font-size: 1.08rem;
 }
 
 .vp-doc p,
 .vp-doc li {
-  font-size: 15.5px;
-  line-height: 1.72;
+  font-size: 17px;
+  line-height: 1.75;
   color: var(--m-text-2);
 }
 
@@ -215,6 +229,7 @@ body {
   border-color: var(--m-accent-line);
 }
 
+/* ── Code blocks ──────────────────────────────────────────────────────────── */
 .vp-doc div[class*='language-'] {
   background: var(--m-surface);
   border: 1px solid var(--m-border);
@@ -223,11 +238,11 @@ body {
 }
 
 .vp-doc div[class*='language-'] pre {
-  padding: 1.05rem 0;
+  padding: 1.15rem 0;
 }
 
 .vp-doc div[class*='language-'] code {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.68;
 }
 
@@ -235,12 +250,13 @@ body {
    so it never collides with the copy button. */
 .vp-doc div[class*='language-'] > span.lang {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
+  font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--m-text-3);
-  top: 9px;
-  right: 14px;
+  top: 4px;
+  right: 12px;
 }
 
 .vp-doc div[class*='language-'] > button.copy {
@@ -253,7 +269,7 @@ body {
 .vp-doc table {
   display: table;
   width: 100%;
-  font-size: 14px;
+  font-size: 15px;
   border-collapse: collapse;
   border: 1px solid var(--m-border);
   border-radius: var(--m-radius);
@@ -263,7 +279,7 @@ body {
 
 .vp-doc th {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -303,18 +319,18 @@ body {
 .vp-doc blockquote > p {
   margin: 0;
   color: var(--m-text-2);
-  font-size: 14.5px;
+  font-size: 15.5px;
 }
 
 .vp-doc .custom-block {
   border-radius: var(--m-radius);
   border: 1px solid var(--m-border);
-  font-size: 14.5px;
+  font-size: 15.5px;
 }
 
 .vp-doc .custom-block-title {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
 }
@@ -332,14 +348,14 @@ body {
 /* ── Page chrome: outline, prev/next, edit link ────────────────────────── */
 .VPDocAsideOutline .outline-title {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--m-text-3);
 }
 
 .VPDocAsideOutline .outline-link {
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--m-text-2);
 }
 
@@ -357,7 +373,7 @@ body {
 
 .VPDocFooter .pager-link .desc {
   font-family: var(--m-font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--m-text-3);
@@ -374,4 +390,104 @@ body {
 .VPLocalSearchBox .search-bar {
   border-radius: var(--m-radius);
   border-color: var(--m-border);
+}
+
+/* ── Footer ─────────────────────────────────────────────────────────────────
+   Stock VitePress centres the footer on a filled band. Here it is a hairline
+   rule and two lines of mono meta, left-aligned with the content above it. */
+.VPFooter {
+  border-top: 1px solid var(--m-border) !important;
+  background: transparent !important;
+  padding: var(--m-s-5) var(--m-s-4) !important;
+}
+
+.VPFooter .container {
+  text-align: left;
+}
+
+.VPFooter .message,
+.VPFooter .copyright {
+  font-family: var(--m-font-mono);
+  /* Was 0.74rem, below the 0.78rem reading floor — this is the licence/build
+     line, read rather than glanced at, unlike the uppercase labels nearby. */
+  font-size: var(--m-t-fine);
+  letter-spacing: 0.01em;
+  line-height: 1.8;
+  color: var(--m-text-3);
+}
+
+.VPFooter .copyright {
+  margin-top: var(--m-s-1);
+}
+
+.VPFooter a {
+  color: var(--m-text-2) !important;
+  text-decoration: none;
+  text-decoration-line: none !important;
+  border-bottom: 1px solid var(--m-border-strong) !important;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.VPFooter a:hover {
+  color: var(--m-accent) !important;
+  border-bottom-color: var(--m-accent-line) !important;
+}
+
+/* ── Search results ─────────────────────────────────────────────────────────
+   The shell is already styled above; the rows, the empty state and the keyboard
+   hints are not, and they are what a reader actually looks at. */
+.VPLocalSearchBox .result {
+  border: 1px solid transparent !important;
+  border-radius: var(--m-radius-sm);
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.VPLocalSearchBox .result.selected {
+  border-color: var(--m-accent-line) !important;
+  background: var(--m-accent-wash);
+}
+
+.VPLocalSearchBox .result .title {
+  font-size: 0.92rem;
+  color: var(--m-text);
+}
+
+.VPLocalSearchBox .result .titles .title-icon,
+.VPLocalSearchBox .result .titles .text {
+  color: var(--m-text-3);
+}
+
+.VPLocalSearchBox .result mark {
+  background: var(--m-accent-wash) !important;
+  color: var(--m-accent) !important;
+  font-weight: 500;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.VPLocalSearchBox .excerpt-wrapper {
+  border-top: 1px solid var(--m-border);
+}
+
+.VPLocalSearchBox .excerpt {
+  background: var(--m-surface);
+}
+
+/* Keyboard hints — mono label voice, like every other label. */
+.VPLocalSearchBox .search-keyboard-shortcuts,
+.VPLocalSearchBox .search-keyboard-shortcuts span {
+  font-family: var(--m-font-mono);
+  font-size: var(--m-t-label) !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--m-text-3);
+}
+
+.VPLocalSearchBox .search-keyboard-shortcuts kbd {
+  font-family: var(--m-font-mono);
+  background: var(--m-bg-alt) !important;
+  border: 1px solid var(--m-border) !important;
+  border-radius: var(--m-radius-sm);
+  box-shadow: none !important;
+  color: var(--m-text-2);
 }
